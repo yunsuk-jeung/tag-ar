@@ -18,7 +18,7 @@ final class MetadataRecorder {
         let timestamp: TimeInterval
         /// 4x4 camera-to-world pose (6DoF), column-major, 16 floats.
         let transform: [Float]
-        /// 3x3 camera intrinsics, column-major, 9 floats.
+        /// Pinhole intrinsics in pixels: [fx, fy, cx, cy].
         let intrinsics: [Float]
     }
 
@@ -49,10 +49,11 @@ final class MetadataRecorder {
     /// Appends the camera intrinsics and pose for a single frame.
     func append(camera: ARCamera, timestamp: TimeInterval) {
         guard isRecording else { return }
+        let k = camera.intrinsics
         frames.append(FrameMetadata(
             timestamp: timestamp,
             transform: Self.flatten(camera.transform),
-            intrinsics: Self.flatten(camera.intrinsics)
+            intrinsics: [k.columns.0.x, k.columns.1.y, k.columns.2.x, k.columns.2.y]
         ))
     }
 
@@ -89,11 +90,5 @@ final class MetadataRecorder {
     private static func flatten(_ m: simd_float4x4) -> [Float] {
         [m.columns.0, m.columns.1, m.columns.2, m.columns.3]
             .flatMap { [$0.x, $0.y, $0.z, $0.w] }
-    }
-
-    /// Flattens a 3x3 matrix into a column-major float array.
-    private static func flatten(_ m: simd_float3x3) -> [Float] {
-        [m.columns.0, m.columns.1, m.columns.2]
-            .flatMap { [$0.x, $0.y, $0.z] }
     }
 }
