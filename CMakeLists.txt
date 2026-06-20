@@ -9,6 +9,9 @@ project(
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Always emit compile_commands.json so clangd indexing stays in sync.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(BUILD_DESKTOP "Build desktop application" ON)
 option(BUILD_TESTS "Build tests" ON)
 
