@@ -1,6 +1,6 @@
-#include <iostream>
+#include "tagar/Tracker.hpp"
 
 int main() {
-  std::cout << "Hello from mac" << std::endl;
+  tagar::Tracker t;
   return 0;
 }

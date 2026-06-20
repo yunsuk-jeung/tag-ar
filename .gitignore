@@ -1,4 +1,7 @@
+.cache/
+build/
+
 third_party/
 libs/
 
-build/
+logs/
