@@ -1,5 +1,4 @@
 #include "tagar/tracker.hpp"
-
 #include "tagar/logger.hpp"
 
 namespace tagar {
@@ -12,4 +11,7 @@ bool Tracker::Init() {
   return true;
 }
 
+void Tracker::SubmitFrame(FrameBuffer frame) {}
+
+void Tracker::Process() {}
 }  // namespace tagar

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <thread>
 #include <cstdint>
+#include <thread>
+
+#include "tagar/types.hpp"
 
 namespace tagar {
 class Tracker {
@@ -10,12 +12,15 @@ class Tracker {
   ~Tracker();
 
   bool Init();
+  void SubmitFrame(FrameBuffer frame);
 
  protected:
+  void Process();
   // void Track();
   // void DetectTags();
   // void EstimatePoses();
 
  private:
+  std::thread thread_;
 };
 }  // namespace tagar

@@ -1,9 +1,0 @@
-CompileFlags:
-  # Read the database CMake generates under build/.
-  CompilationDatabase: build
-  # Let clangd inherit Apple clang's built-in include paths (libc++ for
-  # <format>/<filesystem>, the macOS SDK). Without this, standard headers fail
-  # to resolve and indexing breaks.
-  Compiler: /usr/bin/clang++
-  Add:
-    - -std=c++20
