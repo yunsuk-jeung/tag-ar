@@ -6,6 +6,7 @@
 //
 
 import ARKit
+import CoreMedia
 import simd
 
 /// Records per-frame camera intrinsics and 6DoF pose alongside the video,
@@ -14,8 +15,8 @@ final class MetadataRecorder {
 
     /// One captured frame's camera metadata.
     private struct FrameMetadata: Encodable {
-        /// ARFrame timestamp in seconds; matches the video frame presentation time.
-        let timestamp: TimeInterval
+        /// CMTime value (numerator); seconds = t / timescale. Matches the video frame PTS.
+        let timestamp: Int64
         /// 4x4 camera-to-world pose (6DoF), column-major, 16 floats.
         let transform: [Float]
         /// Pinhole intrinsics in pixels: [fx, fy, cx, cy].
@@ -27,6 +28,8 @@ final class MetadataRecorder {
         /// Image resolution the intrinsics are referenced to (pixels).
         let imageWidth: Int
         let imageHeight: Int
+        /// CMTime timescale (denominator) shared with the video; seconds = t / timescale.
+        let timescale: Int32
         let frames: [FrameMetadata]
     }
 
@@ -34,6 +37,7 @@ final class MetadataRecorder {
     private var frames: [FrameMetadata] = []
     private var imageWidth = 0
     private var imageHeight = 0
+    private var timescale: Int32 = 0
     private var outputURL: URL?
 
     /// Begins collecting metadata. `imageResolution` is `ARCamera.imageResolution`.
@@ -47,11 +51,13 @@ final class MetadataRecorder {
     }
 
     /// Appends the camera intrinsics and pose for a single frame.
-    func append(camera: ARCamera, timestamp: TimeInterval) {
+    /// `timestamp` is the same CMTime used for the matching video frame's PTS.
+    func append(camera: ARCamera, timestamp: CMTime) {
         guard isRecording else { return }
+        timescale = timestamp.timescale
         let k = camera.intrinsics
         frames.append(FrameMetadata(
-            timestamp: timestamp,
+            timestamp: timestamp.value,
             transform: Self.flatten(camera.transform),
             intrinsics: [k.columns.0.x, k.columns.1.y, k.columns.2.x, k.columns.2.y]
         ))
@@ -63,7 +69,12 @@ final class MetadataRecorder {
         guard isRecording, let url = outputURL else { return nil }
         isRecording = false
 
-        let recording = Recording(imageWidth: imageWidth, imageHeight: imageHeight, frames: frames)
+        let recording = Recording(
+            imageWidth: imageWidth,
+            imageHeight: imageHeight,
+            timescale: timescale,
+            frames: frames
+        )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
 
@@ -83,6 +94,7 @@ final class MetadataRecorder {
         frames.removeAll(keepingCapacity: false)
         imageWidth = 0
         imageHeight = 0
+        timescale = 0
         outputURL = nil
     }
 

@@ -69,21 +69,19 @@ final class VideoRecorder {
         isRecording = true
     }
 
-    /// Appends a single captured frame. `timestamp` is the ARFrame timestamp in seconds.
-    func append(pixelBuffer: CVPixelBuffer, timestamp: TimeInterval) {
+    /// Appends a single captured frame at the given presentation time.
+    func append(pixelBuffer: CVPixelBuffer, timestamp: CMTime) {
         guard isRecording,
               let input = videoInput,
               let adaptor = pixelBufferAdaptor else { return }
 
-        let time = CMTime(seconds: timestamp, preferredTimescale: 1_000_000)
-
         if !hasStartedSession {
-            assetWriter?.startSession(atSourceTime: time)
+            assetWriter?.startSession(atSourceTime: timestamp)
             hasStartedSession = true
         }
 
         guard input.isReadyForMoreMediaData else { return }
-        adaptor.append(pixelBuffer, withPresentationTime: time)
+        adaptor.append(pixelBuffer, withPresentationTime: timestamp)
     }
 
     /// Finishes the recording and reports the saved file URL on the main queue.
