@@ -3,9 +3,13 @@
 #include "tagar/logger.hpp"
 
 namespace tagar {
-Tracker::Tracker() {
-  LogI("hello");
-}
+Tracker::Tracker() {}
 
 Tracker::~Tracker() {}
+
+bool Tracker::Init() {
+  LogI("tracker init success");
+  return true;
+}
+
 }  // namespace tagar
