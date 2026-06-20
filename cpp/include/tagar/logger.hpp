@@ -70,8 +70,8 @@ class Logger {
       if (file_sink) {
         sinks.push_back(file_sink);
       }
-      logger_ = std::make_shared<spdlog::logger>("tagar", sinks.begin(),
-                                                 sinks.end());
+      logger_ =
+          std::make_shared<spdlog::logger>("tagar", sinks.begin(), sinks.end());
       logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 
       if (file_sink) {
