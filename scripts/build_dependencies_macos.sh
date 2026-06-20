@@ -49,7 +49,8 @@ echo "  Cmake prefix: $INSTALL_PREFIX"
 echo "  Build Dir:  $BUILD_DIR"
 echo "=================================================="
 
-# Create build and install directories
+# Create source, build and install directories
+mkdir -p "$THIRD_PARTY_DIR"
 mkdir -p "$BUILD_DIR"
 mkdir -p "$INSTALL_PREFIX"
 
