@@ -2,8 +2,27 @@
 .vscode/
 build/
 
+.DS_Store
+
 third_party/
 libs/
 
 logs/
 datasets/
+
+# Xcode user state and build artifacts
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.xcresult
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# SwiftPM local build artifacts
+.build/
+.swiftpm/
