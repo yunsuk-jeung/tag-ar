@@ -19,6 +19,20 @@ void KeyCallback(GLFWwindow* window, int key, int /*scancode*/, int action,
   }
 }
 
+Eigen::Matrix4f ProjectionFromIntrinsics(float fx, float fy, float cx, float cy,
+                                         float w, float h, float near,
+                                         float far) {
+  Eigen::Matrix4f p = Eigen::Matrix4f::Zero();
+  p(0, 0) = 2.0f * fx / w;
+  p(0, 2) = (2.0f * cx - w) / w;
+  p(1, 1) = -2.0f * fy / h;
+  p(1, 2) = (h - 2.0f * cy) / h;
+  p(2, 2) = (far + near) / (far - near);
+  p(2, 3) = -2.0f * far * near / (far - near);
+  p(3, 2) = 1.0f;
+  return p;
+}
+
 }  // namespace
 
 Viewer::~Viewer() {
@@ -67,6 +81,9 @@ bool Viewer::Init(int width, int height, const std::string& title,
   camera_.Init(win_w, win_h);
 
   InstallCallbacks();
+
+  inset_rt_.Create(640, 480);
+  inset_quad_.Upload(MakeQuad({1.0f, 1.0f, 1.0f}));
 
   glEnable(GL_DEPTH_TEST);
 
@@ -136,6 +153,56 @@ void Viewer::Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model,
   const Eigen::Matrix4f mvp =
       camera_.GetProjMatrix() * camera_.GetViewMatrix() * model;
   mesh.Draw(shader_, mvp, texture);
+}
+
+void Viewer::DrawReprojectionInset(
+    const uint8_t* gray, int gray_w, int gray_h,
+    const std::array<float, 4>& intrinsics, const Eigen::Matrix4f& T_w_c,
+    const std::vector<std::pair<Eigen::Matrix4f, GLuint>>& tags) {
+  if (gray == nullptr || gray_w <= 0 || gray_h <= 0) {
+    return;
+  }
+
+  inset_gray_.UploadGray(gray, gray_w, gray_h);
+
+  const Eigen::Matrix4f proj = ProjectionFromIntrinsics(
+      intrinsics[0], intrinsics[1], intrinsics[2], intrinsics[3],
+      static_cast<float>(gray_w), static_cast<float>(gray_h), 0.01f, 100.0f);
+  const Eigen::Matrix4f view = T_w_c.inverse();
+
+  inset_rt_.Bind();
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glDisable(GL_DEPTH_TEST);
+  inset_quad_.Draw(shader_, Eigen::Matrix4f::Identity(), inset_gray_.GetId());
+
+  glEnable(GL_DEPTH_TEST);
+  for (const auto& [model, texture] : tags) {
+    inset_quad_.Draw(shader_, proj * view * model, texture);
+  }
+
+  int fb_w = 0;
+  int fb_h = 0;
+  glfwGetFramebufferSize(window_, &fb_w, &fb_h);
+  RenderTarget::Unbind(fb_w, fb_h);
+
+  const float img_aspect =
+      static_cast<float>(gray_w) / static_cast<float>(gray_h);
+  const float win_aspect = static_cast<float>(fb_w) / static_cast<float>(fb_h);
+  const float half_h = 0.30f;  // NDC half-height (~30% of the window height)
+  const float half_w = half_h * img_aspect / win_aspect;
+  const float margin = 0.03f;
+
+  Eigen::Matrix4f place = Eigen::Matrix4f::Identity();
+  place(0, 0) = half_w;
+  place(1, 1) = -half_h;
+  place(0, 3) = 1.0f - half_w - margin;
+  place(1, 3) = -1.0f + half_h + margin;
+
+  glDisable(GL_DEPTH_TEST);
+  inset_quad_.Draw(shader_, place, inset_rt_.GetColorTexture());
+  glEnable(GL_DEPTH_TEST);
 }
 
 }  // namespace viz

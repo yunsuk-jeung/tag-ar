@@ -1,6 +1,7 @@
 #include <memory>
 #include <filesystem>
 #include <utility>
+#include <vector>
 
 #include <Eigen/Core>
 
@@ -88,12 +89,21 @@ int main() {
       viewer.Draw(cam_frustum, T_w_c);
       viewer.Draw(cam_axis, T_w_c);
 
+      std::vector<std::pair<Eigen::Matrix4f, GLuint>> tag_draws;
+      tag_draws.reserve(result->tags.size());
       for (const auto& tag : result->tags) {
         Eigen::Matrix4f model =
             Eigen::Map<const Eigen::Matrix4f>(tag.T_w_t.data());
         model.topLeftCorner<3, 3>() *= kTagHalfSize;
-        viewer.Draw(tag_quad, model, tag_textures.GetForTag(tag.id));
+        const GLuint texture = tag_textures.GetForTag(tag.id);
+        viewer.Draw(tag_quad, model, texture);
+        tag_draws.emplace_back(model, texture);
       }
+
+      // Bottom-right inset: the camera image with tags reprojected onto it.
+      viewer.DrawReprojectionInset(result->gray.data.data(),
+                                   result->gray.width, result->gray.height,
+                                   result->intrinsics, T_w_c, tag_draws);
     }
 
     viewer.EndFrame();
