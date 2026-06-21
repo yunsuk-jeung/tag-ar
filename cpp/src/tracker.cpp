@@ -90,6 +90,9 @@ void Tracker::ProcessOnce() {
   auto result = std::make_shared<TrackResult>();
   result->t_ns = frame.GetTimestampNs();
   result->T_w_c = ToPoseArray(T_w_c);
+  result->intrinsics = {
+      static_cast<float>(frame.GetFx()), static_cast<float>(frame.GetFy()),
+      static_cast<float>(frame.GetCx()), static_cast<float>(frame.GetCy())};
 
   const cv::Mat& gray = frame.GetGray();
   result->gray.width = gray.cols;
