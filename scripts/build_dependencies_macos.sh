@@ -98,6 +98,7 @@ fetch_source "nlohmann_json" "https://github.com/nlohmann/json.git"         "v3.
 fetch_source "spdlog"        "https://github.com/gabime/spdlog.git"         "33375433e096d59b1e4dd9d46cac9d58a5528ccb"   "$THIRD_PARTY_DIR/spdlog"
 fetch_source "googletest"    "https://github.com/google/googletest.git"     "ff6133ab49b364a883a55ba75c39e520fea6245b"   "$THIRD_PARTY_DIR/googletest"
 fetch_source "opencv"        "https://github.com/opencv/opencv.git"         "4.13.0"                                     "$THIRD_PARTY_DIR/opencv"
+fetch_source "glfw"          "https://github.com/glfw/glfw.git"             "3.4"                                        "$THIRD_PARTY_DIR/glfw"
 
 # Function to build and install a library
 build_library() {
@@ -170,6 +171,16 @@ build_library "opencv" "$THIRD_PARTY_DIR/opencv" \
      -DBUILD_opencv_dnn=OFF \
      -DBUILD_opencv_gapi=OFF \
      -DBUILD_opencv_world=ON"
+
+# 7. GLFW (window + OpenGL context; static lib)
+# No GL loader (GLEW/GLAD) is built: on macOS the OpenGL.framework headers
+# (<OpenGL/gl3.h>) expose the full 4.1 core API directly, so no loader is
+# needed. A Linux/Windows build would need to add one here.
+build_library "glfw" "$THIRD_PARTY_DIR/glfw" \
+    "-DGLFW_BUILD_EXAMPLES=OFF \
+     -DGLFW_BUILD_TESTS=OFF \
+     -DGLFW_BUILD_DOCS=OFF \
+     -DGLFW_BUILD_WAYLAND=OFF"
 
 echo ""
 echo "=================================================="

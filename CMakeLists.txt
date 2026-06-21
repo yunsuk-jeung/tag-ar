@@ -51,6 +51,11 @@ find_package(spdlog REQUIRED)
 find_package(GTest REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc videoio calib3d objdetect highgui)
 
+# Desktop viewer rendering stack. macOS exposes the OpenGL 4.1 core API
+# directly via OpenGL.framework, so no GL loader (GLEW/GLAD) is needed here.
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+
 add_subdirectory(cpp)
 
 if(BUILD_DESKTOP)
