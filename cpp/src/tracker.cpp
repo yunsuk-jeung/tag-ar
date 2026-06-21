@@ -33,7 +33,8 @@ Tracker::Tracker()
 
 Tracker::~Tracker() {}
 
-bool Tracker::Init() {
+bool Tracker::Init(const TrackerConfig& config) {
+  config_ = config;
   LogI("tracker init success");
   return true;
 }
@@ -66,7 +67,7 @@ void Tracker::ProcessOnce() {
                       0, 0, 1);
   const cv::Vec<double, 5> dist(0, 0, 0, 0, 0);
 
-  constexpr float kTagSize = 0.08f;  // meters
+  const float kTagSize = config_.tag_size_m;
   const std::vector<cv::Point3f> object_points = {
       {-kTagSize / 2, kTagSize / 2, 0},
       {kTagSize / 2, kTagSize / 2, 0},

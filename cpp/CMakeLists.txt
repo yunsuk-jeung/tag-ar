@@ -8,6 +8,7 @@ target_sources(
   src/tracker.cpp
   src/frame.cpp
   src/file_reader.cpp
+  src/tracker_config.cpp
 )
 
 target_include_directories(

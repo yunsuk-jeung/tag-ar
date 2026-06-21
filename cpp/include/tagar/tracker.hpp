@@ -8,6 +8,7 @@
 #include <opencv2/objdetect/aruco_detector.hpp>
 
 #include "tagar/tag.hpp"
+#include "tagar/tracker_config.hpp"
 #include "tagar/types.hpp"
 
 namespace tagar {
@@ -16,7 +17,7 @@ class Tracker {
   Tracker();
   ~Tracker();
 
-  bool Init();
+  bool Init(const TrackerConfig& config);
   void SubmitFrame(FrameBuffer frame_buffer);
 
   void ProcessOnce();
@@ -35,5 +36,7 @@ class Tracker {
   cv::aruco::ArucoDetector detector_;
 
   std::unordered_map<int, Tag> tags_;
+
+  TrackerConfig config_;
 };
 }  // namespace tagar

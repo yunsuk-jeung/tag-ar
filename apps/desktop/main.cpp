@@ -29,7 +29,8 @@ int main() {
     return 1;
   };
 
-  if (!tag_tracker->Init()) {
+  fs::path config_path = project_root / "config/tracker.json";
+  if (!tag_tracker->Init(tagar::TrackerConfig::Load(config_path.string()))) {
     return 1;
   }
 
