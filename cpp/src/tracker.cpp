@@ -11,7 +11,9 @@ bool Tracker::Init() {
   return true;
 }
 
-void Tracker::SubmitFrame(FrameBuffer frame) {}
+void Tracker::SubmitFrame(FrameBuffer frame) {
+  LogI("submit frame");
+}
 
 void Tracker::Process() {}
 }  // namespace tagar

@@ -8,6 +8,7 @@
 
 #include "tagar/file_reader.hpp"
 #include "tagar/types.hpp"
+#include "tagar/logger.hpp"
 
 namespace tagar {
 
@@ -57,7 +58,21 @@ class Simulator {
     }
   }
 
-  //Todo: move to private
+  // for debug
+  void FeedFrame() {
+    if (!frame_callback_) {
+      return;
+    }
+
+    FrameBuffer frame = reader_->GetNextFrame();
+    if (frame.image_buffer.buffer.empty()) {
+      LogW("no frame");
+    }
+
+    frame_callback_(frame);
+  }
+
+ protected:
   void FeedFrames() {
     if (!frame_callback_) {
       return;
