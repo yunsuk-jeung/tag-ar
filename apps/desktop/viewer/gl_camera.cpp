@@ -11,10 +11,13 @@ float ToRad(float degree) {
   return degree * kPi / 180.0f;
 }
 
-// Maps world axes so the camera looks down +X with Z up.
 const Eigen::Matrix3f kToZFront =
     (Eigen::Matrix3f() << 0, 0, 1, 1, 0, 0, 0, 1, 0).finished();
 
+const Eigen::Matrix3f kWorldAlign =
+    (Eigen::AngleAxisf(kPi / 2.0f, Eigen::Vector3f::UnitX()) *
+     Eigen::AngleAxisf(kPi / 2.0f, Eigen::Vector3f::UnitY()))
+        .toRotationMatrix();
 }  // namespace
 
 void GLCamera::Init(int width, int height) {
@@ -96,7 +99,6 @@ void GLCamera::OnScroll(double yoffset) {
 }
 
 Eigen::Vector2f GLCamera::AbsToRelative(const Eigen::Vector2d& delta) const {
-  // Both components are divided by width on purpose (matches svis).
   const float w = static_cast<float>(window_size_.x());
   return Eigen::Vector2f(static_cast<float>(delta.x()) / w,
                          static_cast<float>(delta.y()) / w);
@@ -107,10 +109,12 @@ void GLCamera::UpdateViewMatrix() {
       (Eigen::AngleAxisf(ToRad(longitude_), Eigen::Vector3f::UnitZ()) *
        Eigen::AngleAxisf(-ToRad(latitude_), Eigen::Vector3f::UnitY()))
           .toRotationMatrix();
-  view_matrix_.topLeftCorner<3, 3>() = (orientation * kToZFront).transpose();
+
+  const Eigen::Matrix3f base_r = (orientation * kToZFront).transpose();
+
+  view_matrix_.topLeftCorner<3, 3>() = base_r * kWorldAlign;
   view_matrix_.topRightCorner<3, 1>() =
-      -view_matrix_.topLeftCorner<3, 3>() *
-      (orientation * Eigen::Vector3f(distance_, 0, 0) + center_);
+      -base_r * (orientation * Eigen::Vector3f(distance_, 0, 0) + center_);
 }
 
 void GLCamera::UpdateProjMatrix() {
