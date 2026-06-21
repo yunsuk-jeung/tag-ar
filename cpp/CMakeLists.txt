@@ -7,6 +7,7 @@ target_sources(
   PRIVATE
   src/tracker.cpp
   src/frame.cpp
+  src/file_reader.cpp
 )
 
 target_include_directories(
@@ -21,6 +22,7 @@ target_link_libraries(
   Eigen3::Eigen
   Sophus::Sophus
   spdlog::spdlog
+  nlohmann_json::nlohmann_json
   ${OpenCV_LIBS}
 )
 

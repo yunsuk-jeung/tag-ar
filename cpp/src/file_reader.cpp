@@ -1,0 +1,181 @@
+#include "tagar/file_reader.hpp"
+
+#include <filesystem>
+#include <fstream>
+
+#include <nlohmann/json.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
+
+#include "tagar/logger.hpp"
+
+namespace fs = std::filesystem;
+
+namespace tagar {
+
+FileReader::FileReader() = default;
+FileReader::~FileReader() = default;
+
+bool FileReader::Setup(const std::string& dataset_dir) {
+  Reset();
+
+  if (!fs::is_directory(dataset_dir)) {
+    LogE("FileReader: not a directory: {}", dataset_dir);
+    return false;
+  }
+
+  // Pick the first .mp4 and .json in the directory.
+  std::string video_path;
+  std::string json_path;
+  for (const auto& entry : fs::directory_iterator(dataset_dir)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    const std::string ext = entry.path().extension().string();
+    if (ext == ".mp4" && video_path.empty()) {
+      video_path = entry.path().string();
+    } else if (ext == ".json" && json_path.empty()) {
+      json_path = entry.path().string();
+    }
+  }
+
+  if (video_path.empty() || json_path.empty()) {
+    LogE("FileReader: missing mp4 or json in {} (mp4='{}', json='{}')",
+         dataset_dir, video_path, json_path);
+    return false;
+  }
+
+  if (!ParseMetadataJson(json_path) || !OpenVideo(video_path)) {
+    Reset();
+    return false;
+  }
+
+  dataset_name_ = fs::path(dataset_dir).filename().string();
+  ComputeTimestampRange();
+  initialized_ = true;
+  LogI("FileReader: loaded '{}' ({} frames)", dataset_name_, frames_.size());
+  return true;
+}
+
+void FileReader::Reset() {
+  dataset_name_.clear();
+  frames_.clear();
+  frame_index_ = 0;
+  video_.reset();
+  image_width_ = 0;
+  image_height_ = 0;
+  start_timestamp_ns_ = 0;
+  end_timestamp_ns_ = 0;
+  initialized_ = false;
+}
+
+bool FileReader::ParseMetadataJson(const std::string& json_path) {
+  std::ifstream file(json_path);
+  if (!file) {
+    LogE("FileReader: cannot open json: {}", json_path);
+    return false;
+  }
+
+  nlohmann::json root;
+  try {
+    file >> root;
+  } catch (const std::exception& e) {
+    LogE("FileReader: json parse error: {}", e.what());
+    return false;
+  }
+
+  image_width_ = root.value("imageWidth", 0);
+  image_height_ = root.value("imageHeight", 0);
+  const int64_t timescale = root.value("timescale", int64_t{1});
+  if (timescale <= 0) {
+    LogE("FileReader: invalid timescale: {}", timescale);
+    return false;
+  }
+
+  const auto& frames = root.at("frames");
+  frames_.reserve(frames.size());
+  for (const auto& f : frames) {
+    FrameMeta meta;
+    // CMTime value -> nanoseconds: t / timescale seconds.
+    const int64_t t = f.at("t").get<int64_t>();
+    meta.t_ns = t * 1'000'000'000LL / timescale;
+
+    const auto& transform = f.at("transform");
+    for (size_t i = 0; i < meta.pose.size(); ++i) {
+      meta.pose[i] = transform[i].get<float>();
+    }
+
+    const auto& intr = f.at("intrinsics");
+    for (size_t i = 0; i < meta.intrinsics.size(); ++i) {
+      meta.intrinsics[i] = intr[i].get<float>();
+    }
+
+    frames_.push_back(meta);
+  }
+  return true;
+}
+
+bool FileReader::OpenVideo(const std::string& video_path) {
+  video_ = std::make_unique<cv::VideoCapture>(video_path);
+  if (!video_->isOpened()) {
+    LogE("FileReader: cannot open video: {}", video_path);
+    return false;
+  }
+  return true;
+}
+
+void FileReader::ComputeTimestampRange() {
+  if (frames_.empty()) {
+    start_timestamp_ns_ = 0;
+    end_timestamp_ns_ = 0;
+    return;
+  }
+  start_timestamp_ns_ = frames_.front().t_ns;
+  end_timestamp_ns_ = frames_.back().t_ns;
+}
+
+bool FileReader::HasNextFrame() const {
+  return initialized_ && frame_index_ < frames_.size();
+}
+
+FrameBuffer FileReader::GetNextFrame() {
+  FrameBuffer frame{};
+  if (!HasNextFrame()) {
+    return frame;
+  }
+
+  const FrameMeta& meta = frames_[frame_index_];
+  frame.t_ns = meta.t_ns;
+  frame.pose = meta.pose;
+  frame.intrinsics = meta.intrinsics;
+
+  // Decode the matching video frame (paired by index with the metadata).
+  cv::Mat bgr;
+  if (video_ && video_->read(bgr) && !bgr.empty()) {
+    cv::Mat rgb;
+    cv::cvtColor(bgr, rgb, cv::COLOR_BGR2RGB);
+
+    ImageBuffer& img = frame.image_buffer;
+    img.width = rgb.cols;
+    img.height = rgb.rows;
+    img.length = static_cast<int>(rgb.total() * rgb.elemSize());
+    img.format = ColorFormat::kRGB;
+    img.buffer.assign(rgb.data, rgb.data + img.length);
+  } else {
+    LogW("FileReader: no video frame for index {} (t_ns={})", frame_index_,
+         meta.t_ns);
+  }
+
+  ++frame_index_;
+  return frame;
+}
+
+size_t FileReader::GetFrameCount() const { return frames_.size(); }
+
+int64_t FileReader::GetStartTimestampNs() const { return start_timestamp_ns_; }
+
+int64_t FileReader::GetEndTimestampNs() const { return end_timestamp_ns_; }
+
+std::string FileReader::GetDatasetName() const { return dataset_name_; }
+
+}  // namespace tagar

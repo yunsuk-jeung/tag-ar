@@ -49,7 +49,7 @@ find_package(Sophus REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(GTest REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs features2d calib3d highgui)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc videoio calib3d)
 
 add_subdirectory(cpp)
 
