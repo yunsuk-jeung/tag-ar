@@ -18,11 +18,16 @@ class Simulator {
  public:
   using FrameCallback = std::function<void(const FrameBuffer&)>;
 
-  explicit Simulator(FileReader& reader, double speed = 1.0,
-                     bool realtime = true)
-      : reader_(reader), speed_(speed), realtime_(realtime) {}
-
+  Simulator() = default;
   ~Simulator() { Stop(); }
+
+  // Binds the dataset source and playback options. Call before Start().
+  void Setup(FileReader& reader, double speed = 1.0, bool realtime = true) {
+    reader_ = &reader;
+    speed_ = speed;
+    realtime_ = realtime;
+    initialized_ = true;
+  }
 
   void SetFrameCallback(FrameCallback callback) {
     frame_callback_ = std::move(callback);
@@ -31,9 +36,12 @@ class Simulator {
   void SetSpeed(double speed) { speed_ = speed; }
 
   void Start() {
+    if (!initialized_) {
+      return;
+    }
     Stop();
     end_ = false;
-    reader_.Rewind();
+    reader_->Rewind();
     thread_ = std::thread(&Simulator::FeedFrames, this);
   }
 
@@ -54,8 +62,8 @@ class Simulator {
     int64_t start_ts = 0;
     auto start_time = std::chrono::steady_clock::now();
 
-    while (!end_ && reader_.HasNextFrame()) {
-      FrameBuffer frame = reader_.GetNextFrame();
+    while (!end_ && reader_->HasNextFrame()) {
+      FrameBuffer frame = reader_->GetNextFrame();
       if (frame.image_buffer.buffer.empty()) {
         continue;
       }
@@ -82,7 +90,8 @@ class Simulator {
   }
 
  private:
-  FileReader& reader_;
+  FileReader* reader_ = nullptr;
+  bool initialized_ = false;
   std::atomic<bool> end_{false};
   std::thread thread_;
 
