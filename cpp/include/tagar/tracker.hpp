@@ -3,6 +3,7 @@
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <memory>
 #include <unordered_map>
 
 #include <opencv2/objdetect/aruco_detector.hpp>
@@ -22,6 +23,8 @@ class Tracker {
 
   void ProcessOnce();
 
+  std::shared_ptr<const TrackResult> GetLatestResult() const;
+
  protected:
   void Process();
   // void Track();
@@ -38,5 +41,8 @@ class Tracker {
   std::unordered_map<int, Tag> tags_;
 
   TrackerConfig config_;
+
+  mutable std::mutex result_mutex_;
+  std::shared_ptr<const TrackResult> latest_result_;
 };
 }  // namespace tagar

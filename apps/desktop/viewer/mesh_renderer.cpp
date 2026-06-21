@@ -43,6 +43,26 @@ MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
   return m;
 }
 
+MeshData MakeQuad(const Eigen::Vector3f& color) {
+  MeshData m;
+  m.mode = GL_TRIANGLES;
+  m.positions = {
+      {-1, -1, 0},  // 0: bottom-left
+      {1, -1, 0},   // 1: bottom-right
+      {1, 1, 0},    // 2: top-right
+      {-1, 1, 0}    // 3: top-left
+  };
+  m.uvs = {
+      {0, 1},  // bottom-left
+      {1, 1},  // bottom-right
+      {1, 0},  // top-right
+      {0, 0}   // top-left
+  };
+  m.colors.assign(m.positions.size(), color);
+  m.indices = {0, 1, 2, 0, 2, 3};
+  return m;
+}
+
 MeshRenderer::~MeshRenderer() {
   if (vbo_pos_) {
     glDeleteBuffers(1, &vbo_pos_);

@@ -53,24 +53,46 @@ int main() {
   origin_axis.Upload(viz::MakeAxis(0.5f));
   origin_axis.SetLineWidth(3.0f);
 
+  viz::MeshRenderer cam_axis;
+  cam_axis.Upload(viz::MakeAxis(0.1f));
+  cam_axis.SetLineWidth(2.0f);
+
   viz::MeshRenderer cam_frustum;
   cam_frustum.Upload(viz::MakeCameraFrustum(1377.4f, 1377.4f, 1920.0f, 1440.0f,
                                             0.3f, {1.0f, 0.85f, 0.1f}));
   cam_frustum.SetLineWidth(2.0f);
 
+  viz::MeshRenderer tag_quad;
+  tag_quad.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
+
+  const float kTagHalfSize = 0.04f;  // 0.08 m tag
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
   while (!viewer.ShouldClose()) {
     viewer.PollEvents();
 
-    // if (file_reader->HasNextFrame()) {
-    //   simulator->FeedFrame();
-    //   tag_tracker->ProcessOnce();
-    // }
+    if (file_reader->HasNextFrame()) {
+      simulator->FeedFrame();
+      tag_tracker->ProcessOnce();
+    }
 
     viewer.BeginFrame();
     viewer.Draw(origin_axis, kIdentity);
-    viewer.Draw(cam_frustum, kIdentity);
+
+    if (auto result = tag_tracker->GetLatestResult()) {
+      const Eigen::Matrix4f T_w_c =
+          Eigen::Map<const Eigen::Matrix4f>(result->T_w_c.data());
+      viewer.Draw(cam_frustum, T_w_c);
+      viewer.Draw(cam_axis, T_w_c);
+
+      for (const auto& tag : result->tags) {
+        Eigen::Matrix4f model =
+            Eigen::Map<const Eigen::Matrix4f>(tag.T_w_t.data());
+        model.topLeftCorner<3, 3>() *= kTagHalfSize;
+        viewer.Draw(tag_quad, model);
+      }
+    }
+
     viewer.EndFrame();
   }
 

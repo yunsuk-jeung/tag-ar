@@ -24,6 +24,10 @@ MeshData MakeAxis(float length);
 MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
                            float scale, const Eigen::Vector3f& color);
 
+// Unit quad in the XY plane spanning [-1, 1], with UVs (top-left origin) for a
+// future texture and a flat fill color. Pair with GLCamera::MakeBillboard.
+MeshData MakeQuad(const Eigen::Vector3f& color);
+
 class MeshRenderer {
  public:
   MeshRenderer() = default;

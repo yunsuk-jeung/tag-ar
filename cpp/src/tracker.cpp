@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <cerrno>
+#include <memory>
 #include <mutex>
 #include <utility>
 #include <vector>
@@ -14,6 +16,15 @@
 #include "tagar/logger.hpp"
 
 namespace tagar {
+
+namespace {
+std::array<float, 16> ToPoseArray(const Sophus::SE3d& T) {
+  Eigen::Matrix4f m = T.matrix().cast<float>();
+  std::array<float, 16> out{};
+  std::copy(m.data(), m.data() + 16, out.begin());
+  return out;
+}
+}  // namespace
 
 namespace debug {
 void VisualizeTag(Frame& frame, std::vector<std::vector<cv::Point2f>> corners,
@@ -61,7 +72,6 @@ void Tracker::ProcessOnce() {
   std::vector<std::vector<cv::Point2f>> corners, rejected;
   detector_.detectMarkers(frame.GetGray(), corners, ids, rejected);
 
-  // Camera intrinsics from the frame; assume a pinhole model (no distortion).
   const cv::Matx33d K(frame.GetFx(), 0, frame.GetCx(),  //
                       0, frame.GetFy(), frame.GetCy(),  //
                       0, 0, 1);
@@ -76,6 +86,16 @@ void Tracker::ProcessOnce() {
 
   const Sophus::SE3d& T_w_c = frame.GetPose();
   Sophus::SE3d T_w_t;
+
+  auto result = std::make_shared<TrackResult>();
+  result->t_ns = frame.GetTimestampNs();
+  result->T_w_c = ToPoseArray(T_w_c);
+
+  const cv::Mat& gray = frame.GetGray();
+  result->gray.width = gray.cols;
+  result->gray.height = gray.rows;
+  result->gray.data.assign(gray.data, gray.data + gray.total());
+  result->tags.reserve(ids.size());
 
   for (size_t i = 0; i < ids.size(); ++i) {
     cv::Vec3d rvec, tvec;
@@ -104,9 +124,21 @@ void Tracker::ProcessOnce() {
         tags_.try_emplace(ids[i], ids[i], config_.tag_pose_buffer_size);
     Tag& tag = it->second;
     tag.AddPose(frame.GetTimestampNs(), T_w_t);
+
+    result->tags.push_back({ids[i], ToPoseArray(T_w_t)});
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(result_mutex_);
+    latest_result_ = std::move(result);
   }
 
   LogI("frame t_ns: {}  tags: {}", frame.GetTimestampNs(), ids.size());
+}
+
+std::shared_ptr<const TrackResult> Tracker::GetLatestResult() const {
+  std::lock_guard<std::mutex> lock(result_mutex_);
+  return latest_result_;
 }
 
 void Tracker::Process() {}
