@@ -52,6 +52,24 @@ bool Texture::LoadFromFile(const std::string& path) {
   return true;
 }
 
+void Texture::UploadGray(const uint8_t* data, int width, int height) {
+  if (id_ == 0) {
+    glGenTextures(1, &id_);
+  }
+  glBindTexture(GL_TEXTURE_2D, id_);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED,
+               GL_UNSIGNED_BYTE, data);
+  // Replicate the single channel across RGB so it renders as gray.
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 GLuint TagTextureCache::GetForTag(int id) {
   auto it = textures_.find(id);
   if (it == textures_.end()) {

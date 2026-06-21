@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -18,6 +19,8 @@ class Texture {
   Texture& operator=(Texture&& other) noexcept;
 
   bool LoadFromFile(const std::string& path);
+
+  void UploadGray(const uint8_t* data, int width, int height);
 
   GLuint GetId() const { return id_; }
   bool IsValid() const { return id_ != 0; }
