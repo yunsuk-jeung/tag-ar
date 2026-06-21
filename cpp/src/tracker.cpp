@@ -1,7 +1,9 @@
+#include <cerrno>
 #include <mutex>
 #include <utility>
 #include <vector>
 
+#include <Eigen/Core>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -71,13 +73,36 @@ void Tracker::ProcessOnce() {
       {kTagSize / 2, -kTagSize / 2, 0},
       {-kTagSize / 2, -kTagSize / 2, 0}};
 
-  // Estimate each tag's 6DoF pose in the camera frame.
+  const Sophus::SE3d& T_w_c = frame.GetPose();
+  Sophus::SE3d T_w_t;
+
   for (size_t i = 0; i < ids.size(); ++i) {
     cv::Vec3d rvec, tvec;
     cv::solvePnP(object_points, corners[i], K, dist, rvec, tvec, false,
                  cv::SOLVEPNP_IPPE_SQUARE);
-    LogI("tag {} pos(cam)=[{:.3f}, {:.3f}, {:.3f}] m  dist={:.3f} m", ids[i],
-         tvec[0], tvec[1], tvec[2], cv::norm(tvec));
+
+    cv::Matx33d R;
+    cv::Rodrigues(rvec, R);
+    Eigen::Matrix4d cam_from_tag = Eigen::Matrix4d::Identity();
+    for (int r = 0; r < 3; ++r) {
+      for (int c = 0; c < 3; ++c) {
+        cam_from_tag(r, c) = R(r, c);
+      }
+      cam_from_tag(r, 3) = tvec[r];
+    }
+
+    Sophus::SE3d T_c_t = Sophus::SE3d::fitToSE3(cam_from_tag);
+
+    T_w_t = T_w_c * T_c_t;
+
+    const Eigen::Vector3d p = T_w_t.translation();
+    LogI("tag {} pos(world)=[{:.3f}, {:.3f}, {:.3f}] m", ids[i], p.x(), p.y(),
+         p.z());
+
+    auto [it, _] = tags_.try_emplace(ids[i], ids[i]);
+    Tag& tag = it->second;
+
+    LogE("tag id : {}", tag.GetId());
   }
 
   debug::VisualizeTag(frame, corners, ids);

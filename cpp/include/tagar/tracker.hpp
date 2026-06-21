@@ -3,9 +3,11 @@
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <unordered_map>
 
 #include <opencv2/objdetect/aruco_detector.hpp>
 
+#include "tagar/tag.hpp"
 #include "tagar/types.hpp"
 
 namespace tagar {
@@ -31,5 +33,7 @@ class Tracker {
   std::queue<FrameBuffer> frame_buffer_queue_;
 
   cv::aruco::ArucoDetector detector_;
+
+  std::unordered_map<int, Tag> tags_;
 };
 }  // namespace tagar
