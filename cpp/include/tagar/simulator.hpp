@@ -70,10 +70,17 @@ class Simulator {
       LogW("no frame");
     }
 
+    CorrectArkitPose(frame);
     frame_callback_(std::move(frame));
   }
 
  protected:
+  static void CorrectArkitPose(FrameBuffer& frame) {
+    for (int i : {4, 5, 6, 8, 9, 10}) {
+      frame.pose[i] = -frame.pose[i];
+    }
+  }
+
   void FeedFrames() {
     if (!frame_callback_) {
       return;
@@ -106,6 +113,7 @@ class Simulator {
       if (end_) {
         break;
       }
+      CorrectArkitPose(frame);
       frame_callback_(std::move(frame));
     }
   }
