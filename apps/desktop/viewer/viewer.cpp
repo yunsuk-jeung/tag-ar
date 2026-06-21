@@ -190,7 +190,7 @@ void Viewer::DrawReprojectionInset(
   const float img_aspect =
       static_cast<float>(gray_w) / static_cast<float>(gray_h);
   const float win_aspect = static_cast<float>(fb_w) / static_cast<float>(fb_h);
-  const float half_h = 0.30f;  // NDC half-height (~30% of the window height)
+  const float half_h = 0.30f;
   const float half_w = half_h * img_aspect / win_aspect;
   const float margin = 0.03f;
 
