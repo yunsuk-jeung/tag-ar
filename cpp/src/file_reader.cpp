@@ -17,7 +17,7 @@ namespace tagar {
 FileReader::FileReader() = default;
 FileReader::~FileReader() = default;
 
-bool FileReader::Setup(const std::string& dataset_dir) {
+bool FileReader::Init(const std::string& dataset_dir) {
   Reset();
 
   if (!fs::is_directory(dataset_dir)) {

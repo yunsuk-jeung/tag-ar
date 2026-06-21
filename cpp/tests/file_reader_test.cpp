@@ -8,23 +8,23 @@ namespace {
 const std::string kDatasetDir = std::string(TAGAR_TEST_DATA_DIR) + "/01";
 }  // namespace
 
-TEST(FileReaderTest, SetupLoadsMetadata) {
+TEST(FileReaderTest, InitLoadsMetadata) {
   tagar::FileReader reader;
-  ASSERT_TRUE(reader.Setup(kDatasetDir));
+  ASSERT_TRUE(reader.Init(kDatasetDir));
 
   EXPECT_GT(reader.GetFrameCount(), 0u);
   EXPECT_EQ(reader.GetDatasetName(), "01");
   EXPECT_LT(reader.GetStartTimestampNs(), reader.GetEndTimestampNs());
 }
 
-TEST(FileReaderTest, SetupFailsOnMissingDir) {
+TEST(FileReaderTest, InitFailsOnMissingDir) {
   tagar::FileReader reader;
-  EXPECT_FALSE(reader.Setup(std::string(TAGAR_TEST_DATA_DIR) + "/does_not_exist"));
+  EXPECT_FALSE(reader.Init(std::string(TAGAR_TEST_DATA_DIR) + "/does_not_exist"));
 }
 
 TEST(FileReaderTest, FramesHavePoseIntrinsicsAndMonotonicTime) {
   tagar::FileReader reader;
-  ASSERT_TRUE(reader.Setup(kDatasetDir));
+  ASSERT_TRUE(reader.Init(kDatasetDir));
 
   int64_t prev_t = -1;
   size_t visited = 0;
@@ -53,7 +53,7 @@ TEST(FileReaderTest, FramesHavePoseIntrinsicsAndMonotonicTime) {
 
 TEST(FileReaderTest, DecodesVideoFrames) {
   tagar::FileReader reader;
-  ASSERT_TRUE(reader.Setup(kDatasetDir));
+  ASSERT_TRUE(reader.Init(kDatasetDir));
 
   size_t decoded = 0;
   while (reader.HasNextFrame()) {

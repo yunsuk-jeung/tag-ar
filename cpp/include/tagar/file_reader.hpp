@@ -25,7 +25,7 @@ class FileReader {
 
   // Scans dataset_dir for the .mp4 and .json files, opens them, and parses the
   // metadata. Returns false if either file is missing or fails to load.
-  bool Setup(const std::string& dataset_dir);
+  bool Init(const std::string& dataset_dir);
   void Reset();
 
   // Rewinds playback to the first frame without reloading the dataset.

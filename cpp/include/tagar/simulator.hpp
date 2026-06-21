@@ -22,11 +22,16 @@ class Simulator {
   ~Simulator() { Stop(); }
 
   // Binds the dataset source and playback options. Call before Start().
-  void Setup(FileReader& reader, double speed = 1.0, bool realtime = true) {
-    reader_ = &reader;
+  bool Init(FileReader* reader, double speed = 1.0, bool realtime = true) {
+    reader_ = reader;
+    if (!reader) {
+      return false;
+    }
+
     speed_ = speed;
     realtime_ = realtime;
     initialized_ = true;
+    return true;
   }
 
   void SetFrameCallback(FrameCallback callback) {
