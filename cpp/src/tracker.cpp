@@ -106,8 +106,6 @@ void Tracker::ProcessOnce() {
     tag.AddPose(frame.GetTimestampNs(), T_w_t);
   }
 
-  debug::VisualizeTag(frame, corners, ids);
-
   LogI("frame t_ns: {}  tags: {}", frame.GetTimestampNs(), ids.size());
 }
 
