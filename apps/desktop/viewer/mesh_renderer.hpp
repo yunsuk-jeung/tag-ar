@@ -21,6 +21,9 @@ struct MeshData {
 
 MeshData MakeAxis(float length);
 
+MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
+                           float scale, const Eigen::Vector3f& color);
+
 class MeshRenderer {
  public:
   MeshRenderer() = default;

@@ -20,6 +20,29 @@ MeshData MakeAxis(float length) {
   return m;
 }
 
+MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
+                           float scale, const Eigen::Vector3f& color) {
+  const float hw = scale * img_w / (2.0f * fx);
+  const float hh = scale * img_h / (2.0f * fy);
+  const float z = scale;
+
+  MeshData m;
+  m.mode = GL_LINES;
+  m.positions = {
+      {0, 0, 0},     // 0: apex
+      {hw, hh, z},   // 1: top-right
+      {hw, -hh, z},  // 2: bottom-right
+      {-hw, hh, z},  // 3: top-left
+      {-hw, -hh, z}  // 4: bottom-left
+  };
+  m.colors.assign(m.positions.size(), color);
+  m.indices = {
+      0, 1, 0, 2, 0, 3, 0, 4,  // apex to the four corners
+      1, 2, 2, 4, 4, 3, 3, 1   // far-plane rectangle
+  };
+  return m;
+}
+
 MeshRenderer::~MeshRenderer() {
   if (vbo_pos_) {
     glDeleteBuffers(1, &vbo_pos_);

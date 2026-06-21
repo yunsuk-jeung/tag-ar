@@ -52,6 +52,12 @@ int main() {
   viz::MeshRenderer origin_axis;
   origin_axis.Upload(viz::MakeAxis(0.5f));
   origin_axis.SetLineWidth(3.0f);
+
+  viz::MeshRenderer cam_frustum;
+  cam_frustum.Upload(viz::MakeCameraFrustum(1377.4f, 1377.4f, 1920.0f, 1440.0f,
+                                            0.3f, {1.0f, 0.85f, 0.1f}));
+  cam_frustum.SetLineWidth(2.0f);
+
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
   while (!viewer.ShouldClose()) {
@@ -64,6 +70,7 @@ int main() {
 
     viewer.BeginFrame();
     viewer.Draw(origin_axis, kIdentity);
+    viewer.Draw(cam_frustum, kIdentity);
     viewer.EndFrame();
   }
 
