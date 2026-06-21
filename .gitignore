@@ -1,5 +1,6 @@
 .cache/
 .vscode/
+.clangd
 build/
 
 .DS_Store
@@ -9,6 +10,7 @@ libs/
 
 logs/
 datasets/
+
 
 # Xcode user state and build artifacts
 xcuserdata/

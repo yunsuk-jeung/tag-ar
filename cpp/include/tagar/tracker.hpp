@@ -4,6 +4,8 @@
 #include <queue>
 #include <mutex>
 
+#include <opencv2/objdetect/aruco_detector.hpp>
+
 #include "tagar/types.hpp"
 
 namespace tagar {
@@ -27,5 +29,7 @@ class Tracker {
   std::thread thread_;
   std::mutex frame_buffer_lock;
   std::queue<FrameBuffer> frame_buffer_queue_;
+
+  cv::aruco::ArucoDetector detector_;
 };
 }  // namespace tagar

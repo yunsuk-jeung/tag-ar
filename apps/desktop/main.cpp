@@ -37,8 +37,12 @@ int main() {
     tag_tracker->SubmitFrame(std::move(frame_buffer));
   });
 
-  simulator->FeedFrame();
-  tag_tracker->ProcessOnce();
+  static int i = 0;
+  while (file_reader->HasNextFrame() && i < 20) {
+    simulator->FeedFrame();
+    tag_tracker->ProcessOnce();
+    i++;
+  }
 
   return 0;
 }
