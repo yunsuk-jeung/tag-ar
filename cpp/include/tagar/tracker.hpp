@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include <thread>
+#include <queue>
+#include <mutex>
 
 #include "tagar/types.hpp"
 
@@ -12,7 +13,9 @@ class Tracker {
   ~Tracker();
 
   bool Init();
-  void SubmitFrame(FrameBuffer frame);
+  void SubmitFrame(FrameBuffer frame_buffer);
+
+  void ProcessOnce();
 
  protected:
   void Process();
@@ -22,5 +25,7 @@ class Tracker {
 
  private:
   std::thread thread_;
+  std::mutex frame_buffer_lock;
+  std::queue<FrameBuffer> frame_buffer_queue_;
 };
 }  // namespace tagar

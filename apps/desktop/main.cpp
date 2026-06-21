@@ -1,5 +1,6 @@
 #include <memory>
 #include <filesystem>
+#include <utility>
 
 #include "tagar/tracker.hpp"
 #include "tagar/simulator.hpp"
@@ -27,15 +28,17 @@ int main() {
   if (!simulator->Init(file_reader.get())) {
     return 1;
   };
+
   if (!tag_tracker->Init()) {
     return 1;
   }
 
   simulator->SetFrameCallback([&](tagar::FrameBuffer frame_buffer) {
-    return tag_tracker->SubmitFrame(frame_buffer);
+    tag_tracker->SubmitFrame(std::move(frame_buffer));
   });
 
   simulator->FeedFrame();
+  tag_tracker->ProcessOnce();
 
   return 0;
 }

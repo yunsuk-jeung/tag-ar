@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "tagar/file_reader.hpp"
+#include "tagar/logger.hpp"
 #include "tagar/types.hpp"
 #include "tagar/logger.hpp"
 
@@ -17,7 +18,7 @@ namespace tagar {
 // emitted according to the recording's timestamps (scaled by speed).
 class Simulator {
  public:
-  using FrameCallback = std::function<void(const FrameBuffer&)>;
+  using FrameCallback = std::function<void(FrameBuffer)>;
 
   Simulator() = default;
   ~Simulator() { Stop(); }
@@ -69,7 +70,7 @@ class Simulator {
       LogW("no frame");
     }
 
-    frame_callback_(frame);
+    frame_callback_(std::move(frame));
   }
 
  protected:
@@ -105,7 +106,7 @@ class Simulator {
       if (end_) {
         break;
       }
-      frame_callback_(frame);
+      frame_callback_(std::move(frame));
     }
   }
 
