@@ -20,14 +20,11 @@ struct ImageBuffer {
   ColorFormat format = ColorFormat::kUnknown;
 };
 
-struct PoseBuffer {
-  std::array<float, 16> buffer;
-};
-
 struct FrameBuffer {
   int64_t t_ns;
   ImageBuffer image_buffer;
-  PoseBuffer pose_buffer;
+  std::array<float, 16> pose;       // 4x4 camera-to-world, column-major
+  std::array<float, 4> intrinsics;  // [fx, fy, cx, cy]
 };
 
 }  // namespace tagar
