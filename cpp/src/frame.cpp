@@ -13,7 +13,7 @@ Frame::Frame(FrameBuffer frame_buffer) {
   cy_ = frame_buffer.intrinsics[3];
 
   ImageBuffer& image = frame_buffer.image_buffer;
-  
+
   //todo: check when image is not RGB
   cv::Mat rgb(image.height, image.width, CV_8UC3, image.buffer.data());
   cv::cvtColor(rgb, gray_, cv::COLOR_RGB2GRAY);

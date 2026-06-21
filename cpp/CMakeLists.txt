@@ -9,6 +9,7 @@ target_sources(
   src/frame.cpp
   src/file_reader.cpp
   src/tracker_config.cpp
+  src/tag.cpp
 )
 
 target_include_directories(

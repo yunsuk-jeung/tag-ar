@@ -134,8 +134,7 @@ bool FileReader::OpenVideo(const std::string& video_path) {
     LogE("FileReader: cannot open video: {}", video_path);
     return false;
   }
-  video_frame_count_ =
-      static_cast<int>(video_->get(cv::CAP_PROP_FRAME_COUNT));
+  video_frame_count_ = static_cast<int>(video_->get(cv::CAP_PROP_FRAME_COUNT));
   return true;
 }
 
@@ -205,10 +204,16 @@ size_t FileReader::GetFrameCount() const {
   return static_cast<size_t>(video_frame_count_);
 }
 
-int64_t FileReader::GetStartTimestampNs() const { return start_timestamp_ns_; }
+int64_t FileReader::GetStartTimestampNs() const {
+  return start_timestamp_ns_;
+}
 
-int64_t FileReader::GetEndTimestampNs() const { return end_timestamp_ns_; }
+int64_t FileReader::GetEndTimestampNs() const {
+  return end_timestamp_ns_;
+}
 
-std::string FileReader::GetDatasetName() const { return dataset_name_; }
+std::string FileReader::GetDatasetName() const {
+  return dataset_name_;
+}
 
 }  // namespace tagar

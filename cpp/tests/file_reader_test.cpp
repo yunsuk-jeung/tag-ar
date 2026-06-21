@@ -19,7 +19,8 @@ TEST(FileReaderTest, InitLoadsMetadata) {
 
 TEST(FileReaderTest, InitFailsOnMissingDir) {
   tagar::FileReader reader;
-  EXPECT_FALSE(reader.Init(std::string(TAGAR_TEST_DATA_DIR) + "/does_not_exist"));
+  EXPECT_FALSE(
+      reader.Init(std::string(TAGAR_TEST_DATA_DIR) + "/does_not_exist"));
 }
 
 TEST(FileReaderTest, FramesHavePoseIntrinsicsAndMonotonicTime) {
@@ -62,8 +63,9 @@ TEST(FileReaderTest, DecodesVideoFrames) {
     EXPECT_EQ(f.image_buffer.format, tagar::ColorFormat::kRGB);
     EXPECT_GT(f.image_buffer.width, 0);
     EXPECT_GT(f.image_buffer.height, 0);
-    EXPECT_EQ(f.image_buffer.buffer.size(),
-              static_cast<size_t>(f.image_buffer.width) * f.image_buffer.height * 3);
+    EXPECT_EQ(
+        f.image_buffer.buffer.size(),
+        static_cast<size_t>(f.image_buffer.width) * f.image_buffer.height * 3);
     ++decoded;
   }
   // Every video frame is decoded and yielded.

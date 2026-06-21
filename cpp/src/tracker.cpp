@@ -100,10 +100,10 @@ void Tracker::ProcessOnce() {
     LogI("tag {} pos(world)=[{:.3f}, {:.3f}, {:.3f}] m", ids[i], p.x(), p.y(),
          p.z());
 
-    auto [it, _] = tags_.try_emplace(ids[i], ids[i]);
+    auto [it, _] =
+        tags_.try_emplace(ids[i], ids[i], config_.tag_pose_buffer_size);
     Tag& tag = it->second;
-
-    LogE("tag id : {}", tag.GetId());
+    tag.AddPose(frame.GetTimestampNs(), T_w_t);
   }
 
   debug::VisualizeTag(frame, corners, ids);
