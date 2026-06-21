@@ -141,7 +141,7 @@ void Tracker::ProcessOnce() {
     board.AddPose(frame.GetTimestampNs(), T_w_b);
 
     const Sophus::SE3d filtered = board.GetFilteredPose().value_or(T_w_b);
-    result->tags.push_back({kBoardId, ToPoseArray(filtered)});
+    result->board_pose = ToPoseArray(filtered);
 
     const Eigen::Vector3d p = filtered.translation();
     LogI("board pos(world)=[{:.3f}, {:.3f}, {:.3f}] m ({} markers)", p.x(),

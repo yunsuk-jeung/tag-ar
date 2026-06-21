@@ -100,9 +100,9 @@ int main() {
       viewer.Draw(cam_axis, T_w_c);
 
       std::vector<std::pair<Eigen::Matrix4f, GLuint>> obj_draws;
-      for (const auto& board : result->tags) {
+      if (result->board_pose) {
         const Eigen::Matrix4f board_pose =
-            Eigen::Map<const Eigen::Matrix4f>(board.T_w_t.data());
+            Eigen::Map<const Eigen::Matrix4f>(result->board_pose->data());
         viewer.Draw(board_axis, board_pose);
 
         Eigen::Matrix4f model = board_pose;
