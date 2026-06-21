@@ -4,6 +4,7 @@ add_executable(tagar_ar_sample
   viewer/gl_camera.cpp
   viewer/mesh_renderer.cpp
   viewer/texture.cpp
+  viewer/render_target.cpp
 )
 
 # So that #include "viewer/..." resolves from this directory.
