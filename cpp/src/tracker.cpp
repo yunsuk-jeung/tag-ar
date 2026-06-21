@@ -18,6 +18,8 @@
 namespace tagar {
 
 namespace {
+constexpr int kBoardId = 0;
+
 std::array<float, 16> ToPoseArray(const Sophus::SE3d& T) {
   Eigen::Matrix4f m = T.matrix().cast<float>();
   std::array<float, 16> out{};
@@ -40,12 +42,23 @@ void VisualizeTag(Frame& frame, std::vector<std::vector<cv::Point2f>> corners,
 Tracker::Tracker()
     : detector_(
           cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11),
-          cv::aruco::DetectorParameters()) {}
+          cv::aruco::DetectorParameters()) {
+  cv::aruco::DetectorParameters params = detector_.getDetectorParameters();
+  params.cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+  detector_.setDetectorParameters(params);
+}
 
 Tracker::~Tracker() {}
 
 bool Tracker::Init(const TrackerConfig& config) {
   config_ = config;
+
+  const auto dictionary =
+      cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11);
+  board_.emplace(cv::Size(config_.board_markers_x, config_.board_markers_y),
+                 config_.marker_length_m, config_.marker_separation_m,
+                 dictionary);
+
   LogI("tracker init success");
   return true;
 }
@@ -77,15 +90,7 @@ void Tracker::ProcessOnce() {
                       0, 0, 1);
   const cv::Vec<double, 5> dist(0, 0, 0, 0, 0);
 
-  const float kTagSize = config_.tag_size_m;
-  const std::vector<cv::Point3f> object_points = {
-      {-kTagSize / 2, kTagSize / 2, 0},
-      {kTagSize / 2, kTagSize / 2, 0},
-      {kTagSize / 2, -kTagSize / 2, 0},
-      {-kTagSize / 2, -kTagSize / 2, 0}};
-
   const Sophus::SE3d& T_w_c = frame.GetPose();
-  Sophus::SE3d T_w_t;
 
   auto result = std::make_shared<TrackResult>();
   result->t_ns = frame.GetTimestampNs();
@@ -98,37 +103,49 @@ void Tracker::ProcessOnce() {
   result->gray.width = gray.cols;
   result->gray.height = gray.rows;
   result->gray.data.assign(gray.data, gray.data + gray.total());
-  result->tags.reserve(ids.size());
 
-  for (size_t i = 0; i < ids.size(); ++i) {
-    cv::Vec3d rvec, tvec;
-    cv::solvePnP(object_points, corners[i], K, dist, rvec, tvec, false,
-                 cv::SOLVEPNP_IPPE_SQUARE);
+  cv::Mat board_obj_pts;
+  cv::Mat board_img_pts;
+  if (!ids.empty()) {
+    board_->matchImagePoints(corners, ids, board_obj_pts, board_img_pts);
+  }
+
+  if (!board_obj_pts.empty() && board_obj_pts.total() >= 4) {
+    cv::Vec3d rvec;
+    cv::Vec3d tvec;
+    cv::solvePnP(board_obj_pts, board_img_pts, K, dist, rvec, tvec);
 
     cv::Matx33d R;
     cv::Rodrigues(rvec, R);
-    Eigen::Matrix4d cam_from_tag = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d cam_from_board = Eigen::Matrix4d::Identity();
     for (int r = 0; r < 3; ++r) {
       for (int c = 0; c < 3; ++c) {
-        cam_from_tag(r, c) = R(r, c);
+        cam_from_board(r, c) = R(r, c);
       }
-      cam_from_tag(r, 3) = tvec[r];
+      cam_from_board(r, 3) = tvec[r];
     }
 
-    Sophus::SE3d T_c_t = Sophus::SE3d::fitToSE3(cam_from_tag);
+    const Sophus::SE3d T_c_b = Sophus::SE3d::fitToSE3(cam_from_board);
 
-    T_w_t = T_w_c * T_c_t;
+    const cv::Point3f rb = board_->getRightBottomCorner();
+    const Sophus::SE3d T_b_center(
+        Sophus::SO3d(), Eigen::Vector3d(rb.x * 0.5, rb.y * 0.5, rb.z * 0.5));
+    const Sophus::SE3d T_w_b = T_w_c * T_c_b * T_b_center;
 
-    const Eigen::Vector3d p = T_w_t.translation();
-    LogI("tag {} pos(world)=[{:.3f}, {:.3f}, {:.3f}] m", ids[i], p.x(), p.y(),
-         p.z());
+    const Tag::FilterParams filter{
+        config_.filter_alpha, config_.filter_trans_gate_m,
+        config_.filter_rot_gate_deg, config_.filter_max_rejects};
+    auto [it, _] = tags_.try_emplace(kBoardId, kBoardId,
+                                     config_.tag_pose_buffer_size, filter);
+    Tag& board = it->second;
+    board.AddPose(frame.GetTimestampNs(), T_w_b);
 
-    auto [it, _] =
-        tags_.try_emplace(ids[i], ids[i], config_.tag_pose_buffer_size);
-    Tag& tag = it->second;
-    tag.AddPose(frame.GetTimestampNs(), T_w_t);
+    const Sophus::SE3d filtered = board.GetFilteredPose().value_or(T_w_b);
+    result->tags.push_back({kBoardId, ToPoseArray(filtered)});
 
-    result->tags.push_back({ids[i], ToPoseArray(T_w_t)});
+    const Eigen::Vector3d p = filtered.translation();
+    LogI("board pos(world)=[{:.3f}, {:.3f}, {:.3f}] m ({} markers)", p.x(),
+         p.y(), p.z(), ids.size());
   }
 
   {
@@ -136,7 +153,7 @@ void Tracker::ProcessOnce() {
     latest_result_ = std::move(result);
   }
 
-  LogI("frame t_ns: {}  tags: {}", frame.GetTimestampNs(), ids.size());
+  LogI("frame t_ns: {}  markers: {}", frame.GetTimestampNs(), ids.size());
 }
 
 std::shared_ptr<const TrackResult> Tracker::GetLatestResult() const {

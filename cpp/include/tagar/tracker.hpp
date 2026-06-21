@@ -2,10 +2,12 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <thread>
 #include <unordered_map>
 
+#include <opencv2/objdetect/aruco_board.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 
 #include "tagar/tag.hpp"
@@ -37,6 +39,7 @@ class Tracker {
   std::queue<FrameBuffer> frame_buffer_queue_;
 
   cv::aruco::ArucoDetector detector_;
+  std::optional<cv::aruco::GridBoard> board_;
 
   std::unordered_map<int, Tag> tags_;
 

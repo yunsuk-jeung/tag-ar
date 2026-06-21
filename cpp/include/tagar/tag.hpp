@@ -16,18 +16,22 @@ class Tag {
     Sophus::SE3d T_w_t;
   };
 
+  // Outlier-rejecting low-pass filter parameters.
+  struct FilterParams {
+    double alpha = 0.15;         // EMA weight on the new measurement
+    double trans_gate_m = 0.05;  // reject translation jumps beyond this
+    double rot_gate_deg = 60.0;  // reject rotation jumps beyond this
+    int max_rejects = 5;         // re-acquire after this many rejects
+  };
+
   Tag() = delete;
-  Tag(int id, size_t buffer_size) : id_(id), buffer_size_(buffer_size) {}
+  Tag(int id, size_t buffer_size, FilterParams filter)
+      : id_(id), buffer_size_(buffer_size), filter_(filter) {}
   ~Tag() = default;
 
   int GetId() const { return id_; }
 
-  void AddPose(int64_t t_ns, const Sophus::SE3d& T_w_t) {
-    T_w_t_buffer_.push_back({t_ns, T_w_t});
-    if (T_w_t_buffer_.size() > buffer_size_) {
-      T_w_t_buffer_.pop_front();
-    }
-  }
+  void AddPose(int64_t t_ns, const Sophus::SE3d& T_w_t);
 
   bool Empty() const { return T_w_t_buffer_.empty(); }
   size_t Count() const { return T_w_t_buffer_.size(); }
@@ -39,12 +43,21 @@ class Tag {
     return T_w_t_buffer_.back().T_w_t;
   }
 
-  // Smoothed world pose over the buffer (simple mean); nullopt if empty.
-  std::optional<Sophus::SE3d> GetFilteredPose() const;
+  std::optional<Sophus::SE3d> GetFilteredPose() const {
+    if (!has_filtered_) {
+      return std::nullopt;
+    }
+    return filtered_pose_;
+  }
 
  protected:
   int id_;
   size_t buffer_size_;
   std::deque<TimedPose> T_w_t_buffer_;
+
+  FilterParams filter_;
+  bool has_filtered_ = false;
+  Sophus::SE3d filtered_pose_;
+  int reject_count_ = 0;
 };
 }  // namespace tagar

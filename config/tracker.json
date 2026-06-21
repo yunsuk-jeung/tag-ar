@@ -1,4 +1,13 @@
 {
-  "tag_size_m": 0.064,
-  "pose_buffer_size": 20
+  "pose_buffer_size": 20,
+
+  "board_markers_x": 3,
+  "board_markers_y": 3,
+  "marker_length_m": 0.04,
+  "marker_separation_m": 0.008,
+
+  "filter_alpha": 0.15,
+  "filter_trans_gate_m": 0.05,
+  "filter_rot_gate_deg": 60.0,
+  "filter_max_rejects": 5
 }
