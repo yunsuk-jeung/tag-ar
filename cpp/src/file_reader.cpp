@@ -72,6 +72,14 @@ void FileReader::Reset() {
   initialized_ = false;
 }
 
+void FileReader::Rewind() {
+  meta_cursor_ = 0;
+  video_index_ = 0;
+  if (video_) {
+    video_->set(cv::CAP_PROP_POS_FRAMES, 0);
+  }
+}
+
 bool FileReader::ParseMetadataJson(const std::string& json_path) {
   std::ifstream file(json_path);
   if (!file) {

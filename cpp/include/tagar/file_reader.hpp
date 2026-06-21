@@ -28,6 +28,9 @@ class FileReader {
   bool Setup(const std::string& dataset_dir);
   void Reset();
 
+  // Rewinds playback to the first frame without reloading the dataset.
+  void Rewind();
+
   // Sequential access: decodes the next video frame and pairs it with the
   // metadata entry closest in time (matching by timestamp tolerates frames the
   // recorder dropped from the video but still logged in the metadata).
