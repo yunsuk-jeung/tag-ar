@@ -14,9 +14,7 @@ class RenderTarget {
 
   bool Create(int width, int height);
 
-  // Binds the FBO and sets the viewport to its size.
   void Bind() const;
-  // Restores the default framebuffer and the given window viewport.
   static void Unbind(int window_width, int window_height);
 
   GLuint GetColorTexture() const { return color_; }
