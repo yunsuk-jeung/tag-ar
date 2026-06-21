@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include <sophus/se3.hpp>
 #include <opencv2/core.hpp>
+#include <sophus/se3.hpp>
 
 #include "tagar/types.hpp"
 

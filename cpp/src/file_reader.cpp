@@ -1,5 +1,3 @@
-#include "tagar/file_reader.hpp"
-
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -8,6 +6,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 
+#include "tagar/file_reader.hpp"
 #include "tagar/logger.hpp"
 
 namespace fs = std::filesystem;

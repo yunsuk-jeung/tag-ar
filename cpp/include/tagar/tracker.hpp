@@ -1,9 +1,9 @@
 #pragma once
 
-#include <thread>
-#include <queue>
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
 #include <unordered_map>
 
 #include <opencv2/objdetect/aruco_detector.hpp>

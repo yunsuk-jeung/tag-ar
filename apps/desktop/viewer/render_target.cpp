@@ -1,6 +1,6 @@
-#include "viewer/render_target.hpp"
-
 #include <cstdio>
+
+#include "viewer/render_target.hpp"
 
 namespace viz {
 

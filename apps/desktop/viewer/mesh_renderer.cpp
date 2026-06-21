@@ -1,5 +1,4 @@
 #include "viewer/mesh_renderer.hpp"
-
 #include "viewer/shader.hpp"
 
 namespace viz {

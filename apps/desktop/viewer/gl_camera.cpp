@@ -1,6 +1,6 @@
-#include "viewer/gl_camera.hpp"
-
 #include <cmath>
+
+#include "viewer/gl_camera.hpp"
 
 namespace viz {
 namespace {

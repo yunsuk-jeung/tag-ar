@@ -1,9 +1,8 @@
-#include "tagar/tracker_config.hpp"
-
 #include <fstream>
 
 #include <nlohmann/json.hpp>
 
+#include "tagar/tracker_config.hpp"
 #include "tagar/logger.hpp"
 
 namespace tagar {

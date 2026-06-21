@@ -1,8 +1,8 @@
-#include "tagar/file_reader.hpp"
-
 #include <string>
 
 #include <gtest/gtest.h>
+
+#include "tagar/file_reader.hpp"
 
 namespace {
 const std::string kDatasetDir = std::string(TAGAR_TEST_DATA_DIR) + "/01";

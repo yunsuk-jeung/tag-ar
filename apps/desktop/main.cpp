@@ -1,15 +1,15 @@
-#include <memory>
 #include <filesystem>
+#include <memory>
 #include <utility>
 #include <vector>
 
 #include <Eigen/Core>
 
-#include "tagar/tracker.hpp"
 #include "tagar/simulator.hpp"
-#include "viewer/viewer.hpp"
+#include "tagar/tracker.hpp"
 #include "viewer/mesh_renderer.hpp"
 #include "viewer/texture.hpp"
+#include "viewer/viewer.hpp"
 
 namespace fs = std::filesystem;
 
@@ -25,7 +25,7 @@ int main() {
   const auto project_root =
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
-  fs::path dataset_path = project_root / "datasets/01";
+  fs::path dataset_path = project_root / "datasets/03";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;
@@ -100,10 +100,9 @@ int main() {
         tag_draws.emplace_back(model, texture);
       }
 
-      // Bottom-right inset: the camera image with tags reprojected onto it.
-      viewer.DrawReprojectionInset(result->gray.data.data(),
-                                   result->gray.width, result->gray.height,
-                                   result->intrinsics, T_w_c, tag_draws);
+      viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
+                                   result->gray.height, result->intrinsics,
+                                   T_w_c, tag_draws);
     }
 
     viewer.EndFrame();

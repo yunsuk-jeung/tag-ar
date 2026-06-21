@@ -1,7 +1,7 @@
-#include "tagar/tag.hpp"
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include "tagar/tag.hpp"
 
 namespace tagar {
 

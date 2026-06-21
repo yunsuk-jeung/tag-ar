@@ -1,7 +1,7 @@
-#include "tagar/frame.hpp"
-
 #include <Eigen/Core>
 #include <opencv2/imgproc.hpp>
+
+#include "tagar/frame.hpp"
 
 namespace tagar {
 

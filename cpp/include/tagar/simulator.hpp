@@ -9,7 +9,6 @@
 #include "tagar/file_reader.hpp"
 #include "tagar/logger.hpp"
 #include "tagar/types.hpp"
-#include "tagar/logger.hpp"
 
 namespace tagar {
 

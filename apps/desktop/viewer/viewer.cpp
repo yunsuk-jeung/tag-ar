@@ -1,7 +1,6 @@
-#include "viewer/viewer.hpp"
-
 #include <cstdio>
 
+#include "viewer/viewer.hpp"
 #include "viewer/gl_loader.hpp"
 #include "viewer/mesh_renderer.hpp"
 

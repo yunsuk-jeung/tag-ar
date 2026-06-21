@@ -1,7 +1,7 @@
-#include "viewer/texture.hpp"
-
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "viewer/texture.hpp"
 
 namespace viz {
 
