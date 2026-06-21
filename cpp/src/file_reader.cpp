@@ -1,5 +1,6 @@
 #include "tagar/file_reader.hpp"
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 
@@ -60,8 +61,10 @@ bool FileReader::Setup(const std::string& dataset_dir) {
 void FileReader::Reset() {
   dataset_name_.clear();
   frames_.clear();
-  frame_index_ = 0;
+  meta_cursor_ = 0;
   video_.reset();
+  video_frame_count_ = 0;
+  video_index_ = 0;
   image_width_ = 0;
   image_height_ = 0;
   start_timestamp_ns_ = 0;
@@ -96,9 +99,11 @@ bool FileReader::ParseMetadataJson(const std::string& json_path) {
   frames_.reserve(frames.size());
   for (const auto& f : frames) {
     FrameMeta meta;
-    // CMTime value -> nanoseconds: t / timescale seconds.
-    const int64_t t = f.at("t").get<int64_t>();
-    meta.t_ns = t * 1'000'000'000LL / timescale;
+    // CMTime value -> nanoseconds: timestamp / timescale seconds. Use a 128-bit
+    // intermediate; t is already ~1e13, so t * 1e9 would overflow int64.
+    const int64_t t = f.at("timestamp").get<int64_t>();
+    meta.t_ns = static_cast<int64_t>(
+        static_cast<__int128>(t) * 1'000'000'000LL / timescale);
 
     const auto& transform = f.at("transform");
     for (size_t i = 0; i < meta.pose.size(); ++i) {
@@ -121,6 +126,8 @@ bool FileReader::OpenVideo(const std::string& video_path) {
     LogE("FileReader: cannot open video: {}", video_path);
     return false;
   }
+  video_frame_count_ =
+      static_cast<int>(video_->get(cv::CAP_PROP_FRAME_COUNT));
   return true;
 }
 
@@ -135,7 +142,7 @@ void FileReader::ComputeTimestampRange() {
 }
 
 bool FileReader::HasNextFrame() const {
-  return initialized_ && frame_index_ < frames_.size();
+  return initialized_ && video_index_ < video_frame_count_;
 }
 
 FrameBuffer FileReader::GetNextFrame() {
@@ -144,33 +151,51 @@ FrameBuffer FileReader::GetNextFrame() {
     return frame;
   }
 
-  const FrameMeta& meta = frames_[frame_index_];
+  cv::Mat bgr;
+  if (!video_ || !video_->read(bgr) || bgr.empty()) {
+    LogW("FileReader: video ended early at frame {}/{}", video_index_,
+         video_frame_count_);
+    video_index_ = video_frame_count_;  // stop iteration
+    return frame;
+  }
+  // Presentation time of the frame just read, in ms relative to video start.
+  const double video_ms = video_->get(cv::CAP_PROP_POS_MSEC);
+  ++video_index_;
+
+  // Advance the cursor to the metadata entry closest in time. Both streams are
+  // time-ordered, so this is a forward merge; a dropped video frame simply skips
+  // the metadata entries that have no matching image.
+  const int64_t t0 = frames_.front().t_ns;
+  auto rel_ms = [&](size_t i) {
+    return (frames_[i].t_ns - t0) / 1e6;
+  };
+  while (meta_cursor_ + 1 < frames_.size() &&
+         std::abs(rel_ms(meta_cursor_ + 1) - video_ms) <=
+             std::abs(rel_ms(meta_cursor_) - video_ms)) {
+    ++meta_cursor_;
+  }
+  const FrameMeta& meta = frames_[meta_cursor_];
+
   frame.t_ns = meta.t_ns;
   frame.pose = meta.pose;
   frame.intrinsics = meta.intrinsics;
 
-  // Decode the matching video frame (paired by index with the metadata).
-  cv::Mat bgr;
-  if (video_ && video_->read(bgr) && !bgr.empty()) {
-    cv::Mat rgb;
-    cv::cvtColor(bgr, rgb, cv::COLOR_BGR2RGB);
+  cv::Mat rgb;
+  cv::cvtColor(bgr, rgb, cv::COLOR_BGR2RGB);
 
-    ImageBuffer& img = frame.image_buffer;
-    img.width = rgb.cols;
-    img.height = rgb.rows;
-    img.length = static_cast<int>(rgb.total() * rgb.elemSize());
-    img.format = ColorFormat::kRGB;
-    img.buffer.assign(rgb.data, rgb.data + img.length);
-  } else {
-    LogW("FileReader: no video frame for index {} (t_ns={})", frame_index_,
-         meta.t_ns);
-  }
+  ImageBuffer& img = frame.image_buffer;
+  img.width = rgb.cols;
+  img.height = rgb.rows;
+  img.length = static_cast<int>(rgb.total() * rgb.elemSize());
+  img.format = ColorFormat::kRGB;
+  img.buffer.assign(rgb.data, rgb.data + img.length);
 
-  ++frame_index_;
   return frame;
 }
 
-size_t FileReader::GetFrameCount() const { return frames_.size(); }
+size_t FileReader::GetFrameCount() const {
+  return static_cast<size_t>(video_frame_count_);
+}
 
 int64_t FileReader::GetStartTimestampNs() const { return start_timestamp_ns_; }
 

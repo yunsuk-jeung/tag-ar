@@ -29,9 +29,11 @@ class FileReader {
   void Reset();
 
   // Sequential access: decodes the next video frame and pairs it with the
-  // matching pose, intrinsics, and timestamp from the metadata.
+  // metadata entry closest in time (matching by timestamp tolerates frames the
+  // recorder dropped from the video but still logged in the metadata).
   bool HasNextFrame() const;
   FrameBuffer GetNextFrame();
+  // Number of decodable video frames (the count GetNextFrame will yield).
   size_t GetFrameCount() const;
 
   // Recording time range, in nanoseconds.
@@ -54,10 +56,12 @@ class FileReader {
 
   std::string dataset_name_;
 
-  std::vector<FrameMeta> frames_;
-  size_t frame_index_ = 0;
+  std::vector<FrameMeta> frames_;  // metadata lookup table, ordered by time
+  size_t meta_cursor_ = 0;         // nearest metadata index during matching
 
   std::unique_ptr<cv::VideoCapture> video_;
+  int video_frame_count_ = 0;  // total decodable video frames
+  int video_index_ = 0;        // next video frame to read
 
   int image_width_ = 0;
   int image_height_ = 0;
