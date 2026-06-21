@@ -3,8 +3,8 @@
 
   "board_markers_x": 3,
   "board_markers_y": 3,
-  "marker_length_m": 0.04,
-  "marker_separation_m": 0.008,
+  "marker_length_m": 0.039,
+  "marker_separation_m": 0.0075,
 
   "filter_alpha": 0.15,
   "filter_trans_gate_m": 0.05,

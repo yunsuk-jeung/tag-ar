@@ -70,14 +70,4 @@ void Texture::UploadGray(const uint8_t* data, int width, int height) {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-GLuint TagTextureCache::GetForTag(int id) {
-  auto it = textures_.find(id);
-  if (it == textures_.end()) {
-    Texture tex;
-    tex.LoadFromFile(dir_ + "/tag_" + std::to_string(id) + ".png");
-    it = textures_.emplace(id, std::move(tex)).first;
-  }
-  return it->second.GetId();
-}
-
 }  // namespace viz

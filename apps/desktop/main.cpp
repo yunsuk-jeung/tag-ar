@@ -25,7 +25,7 @@ int main() {
   const auto project_root =
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
-  fs::path dataset_path = project_root / "datasets/03";
+  fs::path dataset_path = project_root / "datasets/04";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;
@@ -36,7 +36,9 @@ int main() {
   };
 
   fs::path config_path = project_root / "config/tracker.json";
-  if (!tag_tracker->Init(tagar::TrackerConfig::Load(config_path.string()))) {
+  const tagar::TrackerConfig config =
+      tagar::TrackerConfig::Load(config_path.string());
+  if (!tag_tracker->Init(config)) {
     return 1;
   }
 
@@ -61,15 +63,23 @@ int main() {
 
   viz::MeshRenderer cam_frustum;
   cam_frustum.Upload(viz::MakeCameraFrustum(1377.4f, 1377.4f, 1920.0f, 1440.0f,
-                                            0.3f, {1.0f, 0.85f, 0.1f}));
+                                            0.1f, {1.0f, 0.85f, 0.1f}));
   cam_frustum.SetLineWidth(2.0f);
 
-  viz::MeshRenderer tag_quad;
-  tag_quad.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
+  viz::MeshRenderer board_axis;
+  board_axis.Upload(viz::MakeAxis(0.05f));
+  board_axis.SetLineWidth(3.0f);
 
-  viz::TagTextureCache tag_textures((project_root / "assets").string());
+  viz::MeshRenderer board_object;
+  board_object.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
 
-  const float kTagHalfSize = 0.04f;  // 0.08 m tag
+  viz::Texture board_texture;
+  board_texture.LoadFromFile((project_root / "assets/board_3x3.png").string());
+
+  const float board_edge_m =
+      config.board_markers_x * config.marker_length_m +
+      (config.board_markers_x - 1) * config.marker_separation_m;
+  const float kBoardObjectHalf = board_edge_m / 2.0f;
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
   while (!viewer.ShouldClose()) {
@@ -89,20 +99,22 @@ int main() {
       viewer.Draw(cam_frustum, T_w_c);
       viewer.Draw(cam_axis, T_w_c);
 
-      std::vector<std::pair<Eigen::Matrix4f, GLuint>> tag_draws;
-      tag_draws.reserve(result->tags.size());
-      for (const auto& tag : result->tags) {
-        Eigen::Matrix4f model =
-            Eigen::Map<const Eigen::Matrix4f>(tag.T_w_t.data());
-        model.topLeftCorner<3, 3>() *= kTagHalfSize;
-        const GLuint texture = tag_textures.GetForTag(tag.id);
-        viewer.Draw(tag_quad, model, texture);
-        tag_draws.emplace_back(model, texture);
+      std::vector<std::pair<Eigen::Matrix4f, GLuint>> obj_draws;
+      for (const auto& board : result->tags) {
+        const Eigen::Matrix4f board_pose =
+            Eigen::Map<const Eigen::Matrix4f>(board.T_w_t.data());
+        viewer.Draw(board_axis, board_pose);
+
+        Eigen::Matrix4f model = board_pose;
+        model.topLeftCorner<3, 3>() *= kBoardObjectHalf;
+        const GLuint texture = board_texture.GetId();
+        viewer.Draw(board_object, model, texture);
+        obj_draws.emplace_back(model, texture);
       }
 
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
                                    result->gray.height, result->intrinsics,
-                                   T_w_c, tag_draws);
+                                   T_w_c, obj_draws);
     }
 
     viewer.EndFrame();

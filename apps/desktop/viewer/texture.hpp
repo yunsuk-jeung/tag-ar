@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 
 #include "viewer/gl_loader.hpp"
 
@@ -27,17 +26,6 @@ class Texture {
 
  private:
   GLuint id_ = 0;
-};
-
-class TagTextureCache {
- public:
-  explicit TagTextureCache(std::string dir) : dir_(std::move(dir)) {}
-
-  GLuint GetForTag(int id);
-
- private:
-  std::string dir_;
-  std::unordered_map<int, Texture> textures_;
 };
 
 }  // namespace viz
