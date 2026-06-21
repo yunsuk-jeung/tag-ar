@@ -31,7 +31,8 @@ class Viewer {
   void BeginFrame();
   void EndFrame();
 
-  void Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model);
+  void Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model,
+            GLuint texture = 0);
 
   GLCamera& GetCamera() { return camera_; }
 

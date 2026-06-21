@@ -24,8 +24,6 @@ MeshData MakeAxis(float length);
 MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
                            float scale, const Eigen::Vector3f& color);
 
-// Unit quad in the XY plane spanning [-1, 1], with UVs (top-left origin) for a
-// future texture and a flat fill color. Pair with GLCamera::MakeBillboard.
 MeshData MakeQuad(const Eigen::Vector3f& color);
 
 class MeshRenderer {
@@ -37,12 +35,10 @@ class MeshRenderer {
   MeshRenderer& operator=(const MeshRenderer&) = delete;
 
   void Upload(const MeshData& data);
-  void Draw(const Shader& shader, const Eigen::Matrix4f& mvp) const;
 
-  void SetTexture(GLuint texture) {
-    texture_ = texture;
-    use_texture_ = true;
-  }
+  void Draw(const Shader& shader, const Eigen::Matrix4f& mvp,
+            GLuint texture = 0) const;
+
   void SetLineWidth(float width) { line_width_ = width; }
 
  private:
@@ -56,8 +52,6 @@ class MeshRenderer {
   GLsizei vertex_count_ = 0;
   GLsizei index_count_ = 0;
 
-  bool use_texture_ = false;
-  GLuint texture_ = 0;
   float line_width_ = 2.0f;
 };
 

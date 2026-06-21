@@ -8,6 +8,7 @@
 #include "tagar/simulator.hpp"
 #include "viewer/viewer.hpp"
 #include "viewer/mesh_renderer.hpp"
+#include "viewer/texture.hpp"
 
 namespace fs = std::filesystem;
 
@@ -65,6 +66,8 @@ int main() {
   viz::MeshRenderer tag_quad;
   tag_quad.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
 
+  viz::TagTextureCache tag_textures((project_root / "assets").string());
+
   const float kTagHalfSize = 0.04f;  // 0.08 m tag
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
@@ -89,7 +92,7 @@ int main() {
         Eigen::Matrix4f model =
             Eigen::Map<const Eigen::Matrix4f>(tag.T_w_t.data());
         model.topLeftCorner<3, 3>() *= kTagHalfSize;
-        viewer.Draw(tag_quad, model);
+        viewer.Draw(tag_quad, model, tag_textures.GetForTag(tag.id));
       }
     }
 

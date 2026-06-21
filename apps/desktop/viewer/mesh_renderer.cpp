@@ -135,18 +135,18 @@ void MeshRenderer::Upload(const MeshData& data) {
   glBindVertexArray(0);
 }
 
-void MeshRenderer::Draw(const Shader& shader,
-                        const Eigen::Matrix4f& mvp) const {
+void MeshRenderer::Draw(const Shader& shader, const Eigen::Matrix4f& mvp,
+                        GLuint texture) const {
   if (vao_ == 0) {
     return;
   }
 
   shader.Bind();
   glUniformMatrix4fv(shader.GetUniform("uMVP"), 1, GL_FALSE, mvp.data());
-  glUniform1i(shader.GetUniform("uUseTexture"), use_texture_ ? 1 : 0);
-  if (use_texture_) {
+  glUniform1i(shader.GetUniform("uUseTexture"), texture != 0 ? 1 : 0);
+  if (texture != 0) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_);
+    glBindTexture(GL_TEXTURE_2D, texture);
     glUniform1i(shader.GetUniform("uTexture"), 0);
   }
 

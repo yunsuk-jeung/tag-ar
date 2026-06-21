@@ -131,10 +131,11 @@ void Viewer::EndFrame() {
   glfwSwapBuffers(window_);
 }
 
-void Viewer::Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model) {
+void Viewer::Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model,
+                  GLuint texture) {
   const Eigen::Matrix4f mvp =
       camera_.GetProjMatrix() * camera_.GetViewMatrix() * model;
-  mesh.Draw(shader_, mvp);
+  mesh.Draw(shader_, mvp, texture);
 }
 
 }  // namespace viz
