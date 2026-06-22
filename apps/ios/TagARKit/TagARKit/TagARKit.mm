@@ -46,14 +46,6 @@
   tagar::Wrapper _wrapper;
 }
 
-- (instancetype)initWithTagSize:(float)tagSizeMeters
-                 poseBufferSize:(NSUInteger)poseBufferSize {
-  if (self = [super init]) {
-    _wrapper.Init(tagSizeMeters, static_cast<std::size_t>(poseBufferSize));
-  }
-  return self;
-}
-
 - (instancetype)initWithConfigPath:(NSString *)configPath {
   if (self = [super init]) {
     _wrapper.InitWithConfigFile(configPath.UTF8String);

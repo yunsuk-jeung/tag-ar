@@ -24,9 +24,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TagARTracker : NSObject
 
-- (instancetype)initWithTagSize:(float)tagSizeMeters
-                 poseBufferSize:(NSUInteger)poseBufferSize NS_DESIGNATED_INITIALIZER;
-
 - (instancetype)initWithConfigPath:(NSString *)configPath NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;

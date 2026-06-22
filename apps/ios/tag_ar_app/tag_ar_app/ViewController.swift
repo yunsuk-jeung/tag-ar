@@ -61,19 +61,11 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     view.addGestureRecognizer(tapGesture)
   }
 
-  // Create the tracker from the bundled config and verify it loads.
-  // TrackerConfig::Load on the C++ side logs the parsed values to the console.
   private func setupTagTracker() {
     guard let configPath = Bundle.main.path(forResource: "tracker", ofType: "json") else {
       print("[TagARKit] ERROR: tracker.json not found in app bundle")
       return
     }
-    print("[TagARKit] config path: \(configPath)")
-    if let contents = try? String(contentsOfFile: configPath, encoding: .utf8) {
-      print("[TagARKit] config contents:\n\(contents)")
-    }
-
-    // Watch the console for "TrackerConfig.tag_size_m: ..." from the C++ loader.
     tagTracker = TagARTracker(configPath: configPath)
     print("[TagARKit] tracker created: \(String(describing: tagTracker))")
   }
