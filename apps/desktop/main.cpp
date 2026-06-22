@@ -13,7 +13,7 @@
 
 namespace fs = std::filesystem;
 
-int main() {
+int main(int argc, char** argv) {
   std::unique_ptr<tagar::FileReader> file_reader;
   std::unique_ptr<tagar::Simulator> simulator;
   std::unique_ptr<tagar::Tracker> tag_tracker;
@@ -25,7 +25,8 @@ int main() {
   const auto project_root =
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
-  fs::path dataset_path = project_root / "datasets/04";
+  fs::path dataset_path =
+      argc > 1 ? fs::path(argv[1]) : project_root / "datasets/05";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;
@@ -105,9 +106,11 @@ int main() {
         T_w_cube.col(1).head<3>() = y;
         T_w_cube.col(2).head<3>() = z;
         T_w_cube.col(3).head<3>() = t_w_t;
-        viewer.Draw(tag_cube, T_w_cube, texture);
+        // viewer.Draw(tag_cube, T_w_cube, texture);
+        viewer.Draw(tag_cube, T_w_t, texture);
 
-        inset_draws.push_back({T_w_cube, texture});
+        // inset_draws.push_back({T_w_cube, texture});
+        inset_draws.push_back({T_w_t, texture});
       }
 
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,

@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <cerrno>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -37,6 +39,26 @@ Sophus::SE3d CamFromTag(const cv::Mat& rvec, const cv::Mat& tvec) {
                           tvec.at<double>(2));
   return Sophus::SE3d(Sophus::SO3d::exp(omega), t);
 }
+
+double DepthScore(const Sophus::SE3d& T_c_t,
+                  const std::vector<cv::Point3f>& corners_3d,
+                  const std::vector<cv::Point2f>& corners, const Frame& frame) {
+  double err = 0.0;
+  int n = 0;
+  for (size_t k = 0; k < corners_3d.size(); ++k) {
+    const Eigen::Vector3d p_t(corners_3d[k].x, corners_3d[k].y,
+                              corners_3d[k].z);
+    const Eigen::Vector3d p_c = T_c_t * p_t;
+    const float measured = frame.DepthAt(corners[k].x, corners[k].y);
+    if (measured <= 0.0f) {
+      continue;
+    }
+    const double d = p_c.z() - static_cast<double>(measured);
+    err += d * d;
+    ++n;
+  }
+  return n > 0 ? err / n : std::numeric_limits<double>::infinity();
+}
 }  // namespace
 
 Tracker::Tracker()
@@ -44,7 +66,9 @@ Tracker::Tracker()
           cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11),
           MakeDetectorParams()) {}
 
-Tracker::~Tracker() { Stop(); }
+Tracker::~Tracker() {
+  Stop();
+}
 
 bool Tracker::Init(const TrackerConfig& config) {
   config_ = config;
@@ -82,9 +106,8 @@ void Tracker::Run() {
     FrameBuffer frame_buffer;
     {
       std::unique_lock<std::mutex> lock(frame_buffer_lock);
-      frame_cv_.wait(lock, [this] {
-        return !running_ || !frame_buffer_queue_.empty();
-      });
+      frame_cv_.wait(
+          lock, [this] { return !running_ || !frame_buffer_queue_.empty(); });
       if (!running_ && frame_buffer_queue_.empty()) {
         return;
       }
@@ -121,7 +144,7 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
   const cv::Vec<double, 5> dist(0, 0, 0, 0, 0);
 
   const float kTagSize = config_.tag_size_m;
-  const std::vector<cv::Point3f> object_points = {
+  const std::vector<cv::Point3f> corners_3d = {
       {-kTagSize / 2, kTagSize / 2, 0},
       {kTagSize / 2, kTagSize / 2, 0},
       {kTagSize / 2, -kTagSize / 2, 0},
@@ -143,11 +166,10 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
   result->gray.data.assign(gray.data, gray.data + gray.total());
   result->tags.reserve(ids.size());
 
-  //TODO apply depth
   for (size_t i = 0; i < ids.size(); ++i) {
     std::vector<cv::Mat> rvecs, tvecs;
     std::vector<double> reproj_errors;
-    cv::solvePnPGeneric(object_points, corners[i], K, dist, rvecs, tvecs, false,
+    cv::solvePnPGeneric(corners_3d, corners[i], K, dist, rvecs, tvecs, false,
                         cv::SOLVEPNP_IPPE_SQUARE, cv::noArray(), cv::noArray(),
                         reproj_errors);
     if (rvecs.empty()) {
@@ -162,9 +184,16 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
     bool best_set = false;
     double best_score = 0.0;
     for (size_t s = 0; s < rvecs.size(); ++s) {
-      const Sophus::SE3d cand = T_w_c * CamFromTag(rvecs[s], tvecs[s]);
-      const double score =
-          prev ? (prev->inverse() * cand).log().norm() : reproj_errors[s];
+      const Sophus::SE3d T_c_t = CamFromTag(rvecs[s], tvecs[s]);
+      const Sophus::SE3d cand = T_w_c * T_c_t;
+
+      double score = std::numeric_limits<double>::infinity();
+      if (frame.HasDepth()) {
+        score = DepthScore(T_c_t, corners_3d, corners[i], frame);
+      }
+      if (!std::isfinite(score)) {
+        score = prev ? (prev->inverse() * cand).log().norm() : reproj_errors[s];
+      }
       if (!best_set || score < best_score) {
         best_score = score;
         T_w_t = cand;
