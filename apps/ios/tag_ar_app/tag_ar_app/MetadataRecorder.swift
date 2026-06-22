@@ -28,6 +28,8 @@ final class MetadataRecorder {
         /// Image resolution the intrinsics are referenced to (pixels).
         let imageWidth: Int
         let imageHeight: Int
+        let depthWidth: Int
+        let depthHeight: Int
         /// CMTime timescale (denominator) shared with the video; seconds = t / timescale.
         let timescale: Int32
         let frames: [FrameMetadata]
@@ -37,6 +39,8 @@ final class MetadataRecorder {
     private var frames: [FrameMetadata] = []
     private var imageWidth = 0
     private var imageHeight = 0
+    private var depthWidth = 0
+    private var depthHeight = 0
     private var timescale: Int32 = 0
     private var outputURL: URL?
 
@@ -48,6 +52,11 @@ final class MetadataRecorder {
         imageHeight = Int(imageResolution.height)
         outputURL = url
         isRecording = true
+    }
+
+    func setDepthResolution(width: Int, height: Int) {
+        depthWidth = width
+        depthHeight = height
     }
 
     /// Appends the camera intrinsics and pose for a single frame.
@@ -72,6 +81,8 @@ final class MetadataRecorder {
         let recording = Recording(
             imageWidth: imageWidth,
             imageHeight: imageHeight,
+            depthWidth: depthWidth,
+            depthHeight: depthHeight,
             timescale: timescale,
             frames: frames
         )
@@ -94,6 +105,8 @@ final class MetadataRecorder {
         frames.removeAll(keepingCapacity: false)
         imageWidth = 0
         imageHeight = 0
+        depthWidth = 0
+        depthHeight = 0
         timescale = 0
         outputURL = nil
     }

@@ -24,6 +24,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
   private let recordButton = UIButton(type: .system)
   private let videoRecorder = VideoRecorder()
   private let metadataRecorder = MetadataRecorder()
+  private let depthRecorder = DepthRecorder()
 
   // Tag tracker bridged from the C++ core.
   private var tagTracker: TagARTracker?
@@ -124,12 +125,17 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
       .urls(for: .documentDirectory, in: .userDomainMask)[0]
     let videoURL = documents.appendingPathComponent("\(base).mp4")
     let metadataURL = documents.appendingPathComponent("\(base).json")
+    let depthURL = documents.appendingPathComponent("\(base).depth")
 
     videoRecorder.start(url: videoURL, width: width, height: height)
     metadataRecorder.start(url: metadataURL, imageResolution: frame.camera.imageResolution)
+    depthRecorder.start(url: depthURL)
   }
 
   private func stopRecording() {
+    if let dims = depthRecorder.stop() {
+      metadataRecorder.setDepthResolution(width: dims.width, height: dims.height)
+    }
     let metadataURL = metadataRecorder.stop()
     videoRecorder.stop { url in
       if let url = url {
@@ -148,6 +154,12 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
     // Create a session configuration
     let configuration = ARWorldTrackingConfiguration()
+
+    if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+      configuration.frameSemantics.insert(.sceneDepth)
+    } else {
+      print("[TagARKit] sceneDepth not supported on this device")
+    }
 
     // Run the view's session
     session.run(configuration)
@@ -216,7 +228,11 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     // Build the presentation time once so video and metadata share the exact same CMTime.
     let timestamp = CMTime(seconds: frame.timestamp, preferredTimescale: 1_000_000_000)
     videoRecorder.append(pixelBuffer: frame.capturedImage, timestamp: timestamp)
-    metadataRecorder.append(camera: frame.camera, timestamp: timestamp)
+
+    if let depthMap = frame.sceneDepth?.depthMap {
+      metadataRecorder.append(camera: frame.camera, timestamp: timestamp)
+      depthRecorder.append(depthMap: depthMap)
+    }
   }
 
   func session(_ session: ARSession, didFailWithError error: Error) {
