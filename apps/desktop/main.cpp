@@ -25,7 +25,7 @@ int main() {
   const auto project_root =
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
-  fs::path dataset_path = project_root / "datasets/03";
+  fs::path dataset_path = project_root / "datasets/04";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;
@@ -69,7 +69,7 @@ int main() {
 
   viz::TagTextureCache tag_textures((project_root / "assets").string());
 
-  const float kTagHalfSize = 0.04f;  // 0.08 m tag
+  const float kTagHalfSize = 0.02f;
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
   while (!viewer.ShouldClose()) {

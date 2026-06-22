@@ -2,6 +2,7 @@
 #include <cerrno>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -24,6 +25,20 @@ std::array<float, 16> ToPoseArray(const Sophus::SE3d& T) {
   std::copy(m.data(), m.data() + 16, out.begin());
   return out;
 }
+
+cv::aruco::DetectorParameters MakeDetectorParams() {
+  cv::aruco::DetectorParameters p;
+  p.cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+  return p;
+}
+
+Sophus::SE3d CamFromTag(const cv::Mat& rvec, const cv::Mat& tvec) {
+  const Eigen::Vector3d omega(rvec.at<double>(0), rvec.at<double>(1),
+                              rvec.at<double>(2));
+  const Eigen::Vector3d t(tvec.at<double>(0), tvec.at<double>(1),
+                          tvec.at<double>(2));
+  return Sophus::SE3d(Sophus::SO3d::exp(omega), t);
+}
 }  // namespace
 
 namespace debug {
@@ -40,7 +55,7 @@ void VisualizeTag(Frame& frame, std::vector<std::vector<cv::Point2f>> corners,
 Tracker::Tracker()
     : detector_(
           cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11),
-          cv::aruco::DetectorParameters()) {}
+          MakeDetectorParams()) {}
 
 Tracker::~Tracker() {}
 
@@ -100,28 +115,36 @@ void Tracker::ProcessOnce() {
   result->gray.data.assign(gray.data, gray.data + gray.total());
   result->tags.reserve(ids.size());
 
+  //TODO apply depth
   for (size_t i = 0; i < ids.size(); ++i) {
-    cv::Vec3d rvec, tvec;
-    cv::solvePnP(object_points, corners[i], K, dist, rvec, tvec, false,
-                 cv::SOLVEPNP_IPPE_SQUARE);
-
-    cv::Matx33d R;
-    cv::Rodrigues(rvec, R);
-    Eigen::Matrix4d cam_from_tag = Eigen::Matrix4d::Identity();
-    for (int r = 0; r < 3; ++r) {
-      for (int c = 0; c < 3; ++c) {
-        cam_from_tag(r, c) = R(r, c);
-      }
-      cam_from_tag(r, 3) = tvec[r];
+    std::vector<cv::Mat> rvecs, tvecs;
+    std::vector<double> reproj_errors;
+    cv::solvePnPGeneric(object_points, corners[i], K, dist, rvecs, tvecs, false,
+                        cv::SOLVEPNP_IPPE_SQUARE, cv::noArray(), cv::noArray(),
+                        reproj_errors);
+    if (rvecs.empty()) {
+      continue;
     }
 
-    Sophus::SE3d T_c_t = Sophus::SE3d::fitToSE3(cam_from_tag);
+    std::optional<Sophus::SE3d> prev;
+    if (auto it = tags_.find(ids[i]); it != tags_.end()) {
+      prev = it->second.GetLatestPose();
+    }
 
-    T_w_t = T_w_c * T_c_t;
+    bool best_set = false;
+    double best_score = 0.0;
+    for (size_t s = 0; s < rvecs.size(); ++s) {
+      const Sophus::SE3d cand = T_w_c * CamFromTag(rvecs[s], tvecs[s]);
+      const double score =
+          prev ? (prev->inverse() * cand).log().norm() : reproj_errors[s];
+      if (!best_set || score < best_score) {
+        best_score = score;
+        T_w_t = cand;
+        best_set = true;
+      }
+    }
 
     const Eigen::Vector3d p = T_w_t.translation();
-    LogI("tag {} pos(world)=[{:.3f}, {:.3f}, {:.3f}] m", ids[i], p.x(), p.y(),
-         p.z());
 
     auto [it, _] =
         tags_.try_emplace(ids[i], ids[i], config_.tag_pose_buffer_size);
