@@ -19,6 +19,7 @@
 		F29F09532FE9896E00983A0D /* 9.png in Resources */ = {isa = PBXBuildFile; fileRef = F29F094B2FE9896E00983A0D /* 9.png */; };
 		F29F09542FE9896E00983A0D /* 8.png in Resources */ = {isa = PBXBuildFile; fileRef = F29F094A2FE9896E00983A0D /* 8.png */; };
 		F29F09552FE9896E00983A0D /* 0.png in Resources */ = {isa = PBXBuildFile; fileRef = F29F09422FE9896E00983A0D /* 0.png */; };
+		F29F095B2FE99C3900983A0D /* tracker.json in Resources */ = {isa = PBXBuildFile; fileRef = F29F095A2FE99C3900983A0D /* tracker.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -47,6 +48,7 @@
 		F29F09492FE9896E00983A0D /* 7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 7.png; path = "/Users/yunsuk/workspace/tag-ar/assets/7.png"; sourceTree = "<absolute>"; };
 		F29F094A2FE9896E00983A0D /* 8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 8.png; path = "/Users/yunsuk/workspace/tag-ar/assets/8.png"; sourceTree = "<absolute>"; };
 		F29F094B2FE9896E00983A0D /* 9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 9.png; path = "/Users/yunsuk/workspace/tag-ar/assets/9.png"; sourceTree = "<absolute>"; };
+		F29F095A2FE99C3900983A0D /* tracker.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = tracker.json; path = "/Users/yunsuk/workspace/tag-ar/config/tracker.json"; sourceTree = "<absolute>"; };
 		F2B35D2D2FE659AB004857E6 /* tag_ar_app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tag_ar_app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -91,9 +93,10 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		F29F09412FE9895900983A0D /* texture */ = {
+		F29F09412FE9895900983A0D /* asset */ = {
 			isa = PBXGroup;
 			children = (
+				F29F095A2FE99C3900983A0D /* tracker.json */,
 				F29F09422FE9896E00983A0D /* 0.png */,
 				F29F09432FE9896E00983A0D /* 1.png */,
 				F29F09442FE9896E00983A0D /* 2.png */,
@@ -105,13 +108,13 @@
 				F29F094A2FE9896E00983A0D /* 8.png */,
 				F29F094B2FE9896E00983A0D /* 9.png */,
 			);
-			path = texture;
+			path = asset;
 			sourceTree = "<group>";
 		};
 		F2B35D242FE659AB004857E6 = {
 			isa = PBXGroup;
 			children = (
-				F29F09412FE9895900983A0D /* texture */,
+				F29F09412FE9895900983A0D /* asset */,
 				F2B35D2F2FE659AB004857E6 /* tag_ar_app */,
 				F29F08F12FE958D300983A0D /* Frameworks */,
 				F2B35D2E2FE659AB004857E6 /* Products */,
@@ -198,6 +201,7 @@
 				F29F09502FE9896E00983A0D /* 4.png in Resources */,
 				F29F09512FE9896E00983A0D /* 5.png in Resources */,
 				F29F09522FE9896E00983A0D /* 6.png in Resources */,
+				F29F095B2FE99C3900983A0D /* tracker.json in Resources */,
 				F29F09532FE9896E00983A0D /* 9.png in Resources */,
 				F29F09542FE9896E00983A0D /* 8.png in Resources */,
 				F29F09552FE9896E00983A0D /* 0.png in Resources */,
