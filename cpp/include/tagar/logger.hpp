@@ -72,7 +72,7 @@ class Logger {
       }
       logger_ =
           std::make_shared<spdlog::logger>("tagar", sinks.begin(), sinks.end());
-      logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+      logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [tag-ar] [%^%l%$] %v");
 
       if (file_sink) {
         logger_->info("Logging to file: {}", log_file);
