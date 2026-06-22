@@ -22,6 +22,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
   // Recording state, button, and writers
   private var isRecording = false
   private let recordButton = UIButton(type: .system)
+  private let lookAtSwitch = UISwitch()
   private let videoRecorder = VideoRecorder()
   private let metadataRecorder = MetadataRecorder()
   private let depthRecorder = DepthRecorder()
@@ -56,6 +57,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     }
 
     setupRecordButton()
+    setupLookAtControl()
 
     let tapGesture = UITapGestureRecognizer(
       target: self, action: #selector(ViewController.handleTap(gestureRecognize:)))
@@ -86,14 +88,43 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
     view.addSubview(recordButton)
 
-    // Set size and position in code (avoids the greyed-out width/height in Storyboard)
+    // Bottom-right corner.
     NSLayoutConstraint.activate([
-      recordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+      recordButton.trailingAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
       recordButton.bottomAnchor.constraint(
         equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -32),
-      recordButton.widthAnchor.constraint(equalToConstant: 160),
+      recordButton.widthAnchor.constraint(equalToConstant: 120),
       recordButton.heightAnchor.constraint(equalToConstant: 56),
     ])
+  }
+
+  private func setupLookAtControl() {
+    let label = UILabel()
+    label.text = "Look at me"
+    label.textColor = .white
+    label.font = .boldSystemFont(ofSize: 16)
+
+    lookAtSwitch.isOn = true
+    lookAtSwitch.addTarget(self, action: #selector(toggleLookAt), for: .valueChanged)
+
+    let stack = UIStackView(arrangedSubviews: [label, lookAtSwitch])
+    stack.axis = .horizontal
+    stack.spacing = 8
+    stack.alignment = .center
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(stack)
+
+    NSLayoutConstraint.activate([
+      stack.trailingAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+      stack.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+    ])
+  }
+
+  @objc private func toggleLookAt() {
+    renderer?.faceCamera = lookAtSwitch.isOn
   }
 
   @objc private func toggleRecording() {

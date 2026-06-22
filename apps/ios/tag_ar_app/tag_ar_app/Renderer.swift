@@ -91,6 +91,8 @@ class Renderer {
 
     var tagInstances: [TagInstance] = []
 
+    var faceCamera: Bool = true
+
     var tagCubePipelineState: MTLRenderPipelineState!
     private lazy var textureLoader = MTKTextureLoader(device: device)
     private var tagTextureCache: [Int32: MTLTexture] = [:]
@@ -556,16 +558,20 @@ class Renderer {
         for tag in tagInstances {
             guard let texture = texture(for: tag.id) else { continue }
 
-            let tagPosition = simd_make_float3(tag.transform.columns.3)
-            let z = simd_normalize(cameraPosition - tagPosition)
-            let x = simd_normalize(simd_cross(cameraUp, z))
-            let y = simd_cross(z, x)
-
-            var modelMatrix = matrix_identity_float4x4
-            modelMatrix.columns.0 = simd_float4(x.x, x.y, x.z, 0)
-            modelMatrix.columns.1 = simd_float4(y.x, y.y, y.z, 0)
-            modelMatrix.columns.2 = simd_float4(z.x, z.y, z.z, 0)
-            modelMatrix.columns.3 = simd_float4(tagPosition.x, tagPosition.y, tagPosition.z, 1)
+            var modelMatrix: matrix_float4x4
+            if faceCamera {
+                let tagPosition = simd_make_float3(tag.transform.columns.3)
+                let z = simd_normalize(cameraPosition - tagPosition)
+                let x = simd_normalize(simd_cross(cameraUp, z))
+                let y = simd_cross(z, x)
+                modelMatrix = matrix_identity_float4x4
+                modelMatrix.columns.0 = simd_float4(x.x, x.y, x.z, 0)
+                modelMatrix.columns.1 = simd_float4(y.x, y.y, y.z, 0)
+                modelMatrix.columns.2 = simd_float4(z.x, z.y, z.z, 0)
+                modelMatrix.columns.3 = simd_float4(tagPosition.x, tagPosition.y, tagPosition.z, 1)
+            } else {
+                modelMatrix = tag.transform
+            }
 
             renderEncoder.setVertexBytes(&modelMatrix,
                                          length: MemoryLayout<matrix_float4x4>.stride,
