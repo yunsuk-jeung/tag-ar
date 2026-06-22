@@ -166,6 +166,21 @@ void MeshRenderer::Upload(const MeshData& data) {
   glBindVertexArray(0);
 }
 
+GLuint MeshRenderer::white_texture_ = 0;
+
+GLuint MeshRenderer::WhiteTexture() {
+  if (white_texture_ == 0) {
+    glGenTextures(1, &white_texture_);
+    glBindTexture(GL_TEXTURE_2D, white_texture_);
+    const unsigned char white[4] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 white);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  }
+  return white_texture_;
+}
+
 void MeshRenderer::Draw(const Shader& shader, const Eigen::Matrix4f& mvp,
                         GLuint texture) const {
   if (vao_ == 0) {
@@ -174,12 +189,9 @@ void MeshRenderer::Draw(const Shader& shader, const Eigen::Matrix4f& mvp,
 
   shader.Bind();
   glUniformMatrix4fv(shader.GetUniform("uMVP"), 1, GL_FALSE, mvp.data());
-  glUniform1i(shader.GetUniform("uUseTexture"), texture != 0 ? 1 : 0);
-  if (texture != 0) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(shader.GetUniform("uTexture"), 0);
-  }
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture != 0 ? texture : WhiteTexture());
+  glUniform1i(shader.GetUniform("uTexture"), 0);
 
   if (mode_ == GL_LINES) {
     glLineWidth(line_width_);

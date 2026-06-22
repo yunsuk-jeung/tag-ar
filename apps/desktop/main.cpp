@@ -65,7 +65,7 @@ int main() {
   cam_frustum.SetLineWidth(2.0f);
 
   viz::MeshRenderer tag_quad;
-  tag_quad.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
+  tag_quad.Upload(viz::MakeQuad({1.0f, 1.0f, 1.0f}));
 
   const float kCubeHalf = 0.03f;
   viz::MeshRenderer tag_cube;

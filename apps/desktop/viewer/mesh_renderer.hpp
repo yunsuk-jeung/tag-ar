@@ -44,6 +44,9 @@ class MeshRenderer {
   void SetLineWidth(float width) { line_width_ = width; }
 
  private:
+  static GLuint WhiteTexture();
+  static GLuint white_texture_;
+
   GLuint vao_ = 0;
   GLuint vbo_pos_ = 0;
   GLuint vbo_col_ = 0;
