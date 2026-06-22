@@ -73,7 +73,7 @@ typedef struct {
 typedef struct {
     float4 position [[position]];
     float2 texCoord;
-    float3 viewNormal;
+    float3 objectNormal;
 } TagCubeInOut;
 
 vertex TagCubeInOut tagCubeVertexTransform(Vertex in [[stage_in]],
@@ -84,8 +84,9 @@ vertex TagCubeInOut tagCubeVertexTransform(Vertex in [[stage_in]],
     float4 position = float4(in.position, 1.0);
     out.position = sharedUniforms.projectionMatrix * modelViewMatrix * position;
     out.texCoord = in.texCoord;
-    // View-space normal (assumes no non-uniform scale).
-    out.viewNormal = (modelViewMatrix * float4(float3(in.normal), 0.0)).xyz;
+    // Object-space normal is constant per face, so the texture lands on exactly
+    // one fixed face (+Z) no matter how the cube is oriented.
+    out.objectNormal = float3(in.normal);
     return out;
 }
 
@@ -93,8 +94,8 @@ fragment float4 tagCubeFragmentShader(TagCubeInOut in [[stage_in]],
                                       texture2d<float, access::sample> colorMap [[ texture(kTextureIndexColor) ]]) {
     constexpr sampler colorSampler(mag_filter::linear, min_filter::linear);
 
-    float3 n = normalize(in.viewNormal);
-    if (n.z > 0.5) {
+    // Only the +Z face gets the tag texture; the other five faces are solid.
+    if (in.objectNormal.z > 0.5) {
         return colorMap.sample(colorSampler, in.texCoord);
     }
     return float4(0.15, 0.15, 0.18, 1.0);

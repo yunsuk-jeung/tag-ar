@@ -21,6 +21,12 @@ Wrapper::Wrapper() : impl_(std::make_unique<Impl>()) {}
 
 Wrapper::~Wrapper() = default;
 
+bool Wrapper::Init(float tag_size_m) {
+  TrackerConfig config;
+  config.tag_size_m = tag_size_m;
+  return impl_->tracker.Init(config);
+}
+
 bool Wrapper::InitWithConfigFile(const char* config_path) {
   TrackerConfig config =
       TrackerConfig::Load(config_path ? config_path : std::string());

@@ -57,6 +57,13 @@
   return self;
 }
 
+- (instancetype)initWithTagSize:(float)tagSizeMeters {
+  if (self = [super init]) {
+    _wrapper.Init(tagSizeMeters);
+  }
+  return self;
+}
+
 - (void)start {
   _wrapper.Start();
 }

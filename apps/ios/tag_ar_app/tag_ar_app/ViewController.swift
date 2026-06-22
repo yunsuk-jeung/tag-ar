@@ -23,6 +23,9 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
   private var isRecording = false
   private let recordButton = UIButton(type: .system)
   private let lookAtSwitch = UISwitch()
+  private let tagSizeField = UITextField()
+  private let resetButton = UIButton(type: .system)
+  private let defaultTagSize: Float = 0.085
   private let videoRecorder = VideoRecorder()
   private let metadataRecorder = MetadataRecorder()
   private let depthRecorder = DepthRecorder()
@@ -58,6 +61,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
     setupRecordButton()
     setupLookAtControl()
+    setupTagSizeControls()
 
     let tapGesture = UITapGestureRecognizer(
       target: self, action: #selector(ViewController.handleTap(gestureRecognize:)))
@@ -125,6 +129,64 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
   @objc private func toggleLookAt() {
     renderer?.faceCamera = lookAtSwitch.isOn
+  }
+
+  // Tag-size input + Reset button: rebuilds the tracker with the entered scale.
+  private func setupTagSizeControls() {
+    let label = UILabel()
+    label.text = "Tag size (m)"
+    label.textColor = .white
+    label.font = .boldSystemFont(ofSize: 14)
+
+    tagSizeField.text = String(defaultTagSize)
+    tagSizeField.keyboardType = .decimalPad
+    tagSizeField.borderStyle = .roundedRect
+    tagSizeField.backgroundColor = .white
+    tagSizeField.textColor = .black
+    tagSizeField.widthAnchor.constraint(equalToConstant: 90).isActive = true
+
+    resetButton.setTitle("Reset", for: .normal)
+    resetButton.titleLabel?.font = .boldSystemFont(ofSize: 16)
+    resetButton.setTitleColor(.white, for: .normal)
+    resetButton.backgroundColor = .systemBlue
+    resetButton.layer.cornerRadius = 8
+    resetButton.addTarget(self, action: #selector(resetTracker), for: .touchUpInside)
+    resetButton.widthAnchor.constraint(equalToConstant: 72).isActive = true
+    resetButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+    let stack = UIStackView(arrangedSubviews: [label, tagSizeField, resetButton])
+    stack.axis = .horizontal
+    stack.spacing = 8
+    stack.alignment = .center
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(stack)
+
+    NSLayoutConstraint.activate([
+      stack.leadingAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+      stack.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+    ])
+  }
+
+  // Tear down the tracker and recreate it with the entered tag size.
+  @objc private func resetTracker() {
+    view.endEditing(true)
+
+    let parsed = Float(tagSizeField.text ?? "") ?? defaultTagSize
+    let tagSize = parsed > 0 ? parsed : defaultTagSize
+    tagSizeField.text = String(tagSize)
+
+    // Destroy the old tracker first: stop() joins its worker thread, then
+    // releasing the last reference runs the C++ Tracker destructor (which also
+    // stops/joins). nil-first guarantees only one tracker exists at a time.
+    tagTracker?.stop()
+    tagTracker = nil
+
+    tagTracker = TagARTracker(tagSize: tagSize)
+    tagTracker?.start()
+    renderer?.tagInstances = []  // clear stale cubes until re-detected
+    print("[TagARKit] tracker reset, tag size = \(tagSize) m")
   }
 
   @objc private func toggleRecording() {
@@ -205,18 +267,17 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
   @objc
   func handleTap(gestureRecognize: UITapGestureRecognizer) {
-    // Create anchor using the camera's current position
-    if let currentFrame = session.currentFrame {
+    // Dismiss the tag-size keyboard if it's up (decimal pad has no return key).
+    view.endEditing(true)
 
-      // Create a transform with a translation of 0.2 meters in front of the camera
-      var translation = matrix_identity_float4x4
-      translation.columns.3.z = -0.2
-      let transform = simd_mul(currentFrame.camera.transform, translation)
-
-      // Add a new anchor to the session
-      let anchor = ARAnchor(transform: transform)
-      session.add(anchor: anchor)
-    }
+    // Anchor-on-tap (debug cube) disabled; tags are augmented instead.
+    // if let currentFrame = session.currentFrame {
+    //   var translation = matrix_identity_float4x4
+    //   translation.columns.3.z = -0.2
+    //   let transform = simd_mul(currentFrame.camera.transform, translation)
+    //   let anchor = ARAnchor(transform: transform)
+    //   session.add(anchor: anchor)
+    // }
   }
 
   // MARK: - MTKViewDelegate
