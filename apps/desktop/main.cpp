@@ -67,9 +67,14 @@ int main() {
   viz::MeshRenderer tag_quad;
   tag_quad.Upload(viz::MakeQuad({0.2f, 0.8f, 1.0f}));
 
+  const float kCubeHalf = 0.03f;
+  viz::MeshRenderer tag_cube;
+  tag_cube.Upload(viz::MakeCube(kCubeHalf));
+
   viz::TagTextureCache tag_textures((project_root / "assets").string());
 
-  const float kTagHalfSize = 0.02f;
+  //TODO read data from trackerconfig
+  const float kLabelHalfSize = 0.018f;  // smaller than the cube face
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
   tag_tracker->Start();
@@ -87,20 +92,37 @@ int main() {
       viewer.Draw(cam_frustum, T_w_c);
       viewer.Draw(cam_axis, T_w_c);
 
-      std::vector<std::pair<Eigen::Matrix4f, GLuint>> tag_draws;
-      tag_draws.reserve(result->tags.size());
+      const Eigen::Matrix3f R_w_c = T_w_c.topLeftCorner<3, 3>();
+      const Eigen::Vector3f t_w_c = T_w_c.col(3).head<3>();
+
+      std::vector<viz::InsetDraw> inset_draws;
+      inset_draws.reserve(result->tags.size() * 2);
       for (const auto& tag : result->tags) {
-        Eigen::Matrix4f model =
-            Eigen::Map<const Eigen::Matrix4f>(tag.T_w_t.data());
-        model.topLeftCorner<3, 3>() *= kTagHalfSize;
+        const Eigen::Map<const Eigen::Matrix4f> T_w_t(tag.T_w_t.data());
+        const Eigen::Vector3f t_w_t = T_w_t.col(3).head<3>();
         const GLuint texture = tag_textures.GetForTag(tag.id);
-        viewer.Draw(tag_quad, model, texture);
-        tag_draws.emplace_back(model, texture);
+
+        // Cube oriented so its +Z (textured) face looks at the AR camera.
+        Eigen::Matrix4f T_w_cube = Eigen::Matrix4f::Identity();
+        T_w_cube.topLeftCorner<3, 3>() = R_w_c;
+        T_w_cube.col(3).head<3>() = t_w_t;
+        viewer.Draw(tag_cube, T_w_cube);
+
+        // Sit clearly in front of the +Z face
+        const Eigen::Vector3f vec_t_c = (t_w_c - t_w_t).normalized();
+        Eigen::Matrix4f T_w_label = Eigen::Matrix4f::Identity();
+        T_w_label.topLeftCorner<3, 3>() = R_w_c * kLabelHalfSize;
+        T_w_label.col(3).head<3>() = t_w_t + vec_t_c * (kCubeHalf * 1.5f);
+        viewer.Draw(tag_quad, T_w_label, texture);
+
+        // Mirror the same draws into the AR-camera inset.
+        inset_draws.push_back({&tag_cube, T_w_cube, 0});
+        inset_draws.push_back({&tag_quad, T_w_label, texture});
       }
 
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
                                    result->gray.height, result->intrinsics,
-                                   T_w_c, tag_draws);
+                                   T_w_c, inset_draws);
     }
 
     viewer.EndFrame();

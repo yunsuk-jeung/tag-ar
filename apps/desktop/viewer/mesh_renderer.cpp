@@ -62,6 +62,38 @@ MeshData MakeQuad(const Eigen::Vector3f& color) {
   return m;
 }
 
+MeshData MakeCube(float half_extent) {
+  const float h = half_extent;
+  // Each face has its own 4 vertices so it can carry a flat, distinct color.
+  MeshData m;
+  m.mode = GL_TRIANGLES;
+  m.positions = {
+      {-h, -h, h},  {h, -h, h},  {h, h, h},  {-h, h, h},   // +Z front
+      {h, -h, -h},  {-h, -h, -h}, {-h, h, -h}, {h, h, -h}, // -Z back
+      {h, -h, h},   {h, -h, -h}, {h, h, -h},  {h, h, h},   // +X right
+      {-h, -h, -h}, {-h, -h, h}, {-h, h, h},  {-h, h, -h}, // -X left
+      {-h, h, h},   {h, h, h},   {h, h, -h},  {-h, h, -h}, // +Y top
+      {-h, -h, -h}, {h, -h, -h}, {h, -h, h},  {-h, -h, h}  // -Y bottom
+  };
+  m.colors = {
+      {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},   // +Z front (textured)
+      {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},   // -Z back
+      {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},   // +X right
+      {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},   // -X left
+      {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},   // +Y top
+      {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}   // -Y bottom
+  };
+  m.indices = {
+      0,  1,  2,  0,  2,  3,   // +Z front
+      4,  5,  6,  4,  6,  7,   // -Z back
+      8,  9,  10, 8,  10, 11,  // +X right
+      12, 13, 14, 12, 14, 15,  // -X left
+      16, 17, 18, 16, 18, 19,  // +Y top
+      20, 21, 22, 20, 22, 23   // -Y bottom
+  };
+  return m;
+}
+
 MeshRenderer::~MeshRenderer() {
   if (vbo_pos_) {
     glDeleteBuffers(1, &vbo_pos_);

@@ -26,6 +26,8 @@ MeshData MakeCameraFrustum(float fx, float fy, float img_w, float img_h,
 
 MeshData MakeQuad(const Eigen::Vector3f& color);
 
+MeshData MakeCube(float half_extent);
+
 class MeshRenderer {
  public:
   MeshRenderer() = default;

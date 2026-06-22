@@ -173,7 +173,7 @@ void Viewer::Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model,
 void Viewer::DrawReprojectionInset(
     const uint8_t* gray, int gray_w, int gray_h,
     const std::array<float, 4>& intrinsics, const Eigen::Matrix4f& T_w_c,
-    const std::vector<std::pair<Eigen::Matrix4f, GLuint>>& tags) {
+    const std::vector<InsetDraw>& draws) {
   if (gray == nullptr || gray_w <= 0 || gray_h <= 0) {
     return;
   }
@@ -193,8 +193,8 @@ void Viewer::DrawReprojectionInset(
   inset_quad_.Draw(shader_, Eigen::Matrix4f::Identity(), inset_gray_.GetId());
 
   glEnable(GL_DEPTH_TEST);
-  for (const auto& [model, texture] : tags) {
-    inset_quad_.Draw(shader_, proj * view * model, texture);
+  for (const auto& d : draws) {
+    d.mesh->Draw(shader_, proj * view * d.model, d.texture);
   }
 
   int fb_w = 0;
