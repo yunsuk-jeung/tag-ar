@@ -28,6 +28,12 @@ bool Wrapper::Init(float tag_size_m, std::size_t pose_buffer_size) {
   return impl_->tracker.Init(config);
 }
 
+bool Wrapper::InitWithConfigFile(const char* config_path) {
+  TrackerConfig config =
+      TrackerConfig::Load(config_path ? config_path : std::string());
+  return impl_->tracker.Init(config);
+}
+
 void Wrapper::Start() { impl_->tracker.Start(); }
 
 void Wrapper::Stop() { impl_->tracker.Stop(); }

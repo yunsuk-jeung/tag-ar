@@ -25,11 +25,13 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
   private let videoRecorder = VideoRecorder()
   private let metadataRecorder = MetadataRecorder()
 
+  // Tag tracker bridged from the C++ core.
+  private var tagTracker: TagARTracker?
+
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    // Smoke test: verify the TagARKit Objective-C++ bridge is wired up.
-    TagARTracker.ping()
+    setupTagTracker()
 
     // Set the view's delegate
     session = ARSession()
@@ -57,6 +59,23 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     let tapGesture = UITapGestureRecognizer(
       target: self, action: #selector(ViewController.handleTap(gestureRecognize:)))
     view.addGestureRecognizer(tapGesture)
+  }
+
+  // Create the tracker from the bundled config and verify it loads.
+  // TrackerConfig::Load on the C++ side logs the parsed values to the console.
+  private func setupTagTracker() {
+    guard let configPath = Bundle.main.path(forResource: "tracker", ofType: "json") else {
+      print("[TagARKit] ERROR: tracker.json not found in app bundle")
+      return
+    }
+    print("[TagARKit] config path: \(configPath)")
+    if let contents = try? String(contentsOfFile: configPath, encoding: .utf8) {
+      print("[TagARKit] config contents:\n\(contents)")
+    }
+
+    // Watch the console for "TrackerConfig.tag_size_m: ..." from the C++ loader.
+    tagTracker = TagARTracker(configPath: configPath)
+    print("[TagARKit] tracker created: \(String(describing: tagTracker))")
   }
 
   private func setupRecordButton() {

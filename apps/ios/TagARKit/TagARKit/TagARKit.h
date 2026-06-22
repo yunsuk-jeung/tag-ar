@@ -26,6 +26,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithTagSize:(float)tagSizeMeters
                  poseBufferSize:(NSUInteger)poseBufferSize NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)initWithConfigPath:(NSString *)configPath NS_DESIGNATED_INITIALIZER;
+
 - (instancetype)init NS_UNAVAILABLE;
 
 - (void)start;

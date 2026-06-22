@@ -54,6 +54,13 @@
   return self;
 }
 
+- (instancetype)initWithConfigPath:(NSString *)configPath {
+  if (self = [super init]) {
+    _wrapper.InitWithConfigFile(configPath.UTF8String);
+  }
+  return self;
+}
+
 - (void)start {
   _wrapper.Start();
 }
