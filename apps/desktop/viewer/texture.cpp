@@ -74,7 +74,7 @@ GLuint TagTextureCache::GetForTag(int id) {
   auto it = textures_.find(id);
   if (it == textures_.end()) {
     Texture tex;
-    tex.LoadFromFile(dir_ + "/tag_" + std::to_string(id) + ".png");
+    tex.LoadFromFile(dir_ + "/" + std::to_string(id) + ".png");
     it = textures_.emplace(id, std::move(tex)).first;
   }
   return it->second.GetId();
