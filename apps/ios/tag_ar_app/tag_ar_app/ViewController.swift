@@ -9,6 +9,7 @@ import ARKit
 import Metal
 import MetalKit
 import UIKit
+import TagARKit
 
 extension MTKView: RenderDestinationProvider {
 }
@@ -26,6 +27,9 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+
+    // Smoke test: verify the TagARKit Objective-C++ bridge is wired up.
+    TagARTracker.ping()
 
     // Set the view's delegate
     session = ARSession()

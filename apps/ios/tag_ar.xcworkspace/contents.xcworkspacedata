@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:TagARKit/TagARKit.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:tag_ar_app/tag_ar_app.xcodeproj">
    </FileRef>
 </Workspace>
