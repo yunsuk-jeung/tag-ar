@@ -8,6 +8,7 @@ namespace tagar {
 
 enum class ColorFormat {
   kUnknown = 0,
+  kGray,
   kRGB,
   kNV12,
 };
@@ -43,7 +44,7 @@ struct TagObservation {
 // Snapshot the tracker publishes for consumers
 struct TrackResult {
   int64_t t_ns = 0;
-  std::array<float, 16> T_w_c{};   // 4x4 camera-to-world, column-major
+  std::array<float, 16> T_w_c{};      // 4x4 camera-to-world, column-major
   std::array<float, 4> intrinsics{};  // [fx, fy, cx, cy] for the gray image
   GrayImage gray;
   std::vector<TagObservation> tags;

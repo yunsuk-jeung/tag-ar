@@ -14,9 +14,25 @@ Frame::Frame(FrameBuffer frame_buffer) {
 
   ImageBuffer& image = frame_buffer.image_buffer;
 
-  //todo: check when image is not RGB
-  cv::Mat rgb(image.height, image.width, CV_8UC3, image.buffer.data());
-  cv::cvtColor(rgb, gray_, cv::COLOR_RGB2GRAY);
+  switch (image.format) {
+    case ColorFormat::kGray: {
+      cv::Mat gray(image.height, image.width, CV_8UC1, image.buffer.data());
+      gray_ = gray.clone();
+      break;
+    }
+    case ColorFormat::kNV12: {
+      cv::Mat yuv(image.height * 3 / 2, image.width, CV_8UC1,
+                  image.buffer.data());
+      cv::cvtColor(yuv, gray_, cv::COLOR_YUV2GRAY_NV12);
+      break;
+    }
+    case ColorFormat::kRGB:
+    default: {
+      cv::Mat rgb(image.height, image.width, CV_8UC3, image.buffer.data());
+      cv::cvtColor(rgb, gray_, cv::COLOR_RGB2GRAY);
+      break;
+    }
+  }
 
   Eigen::Matrix4f pose =
       Eigen::Map<const Eigen::Matrix4f>(frame_buffer.pose.data());

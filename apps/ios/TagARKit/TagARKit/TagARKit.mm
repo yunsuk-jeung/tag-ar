@@ -65,21 +65,52 @@
   _wrapper.Stop();
 }
 
-- (void)submitFrameRGB:(const uint8_t *)rgb
-                 width:(int)width
-                height:(int)height
-             timestamp:(int64_t)timestampNs
-                  pose:(simd_float4x4)pose
-            intrinsics:(simd_float4)intrinsics {
+- (void)submitFrame:(CVPixelBufferRef)pixelBuffer
+          timestamp:(int64_t)timestampNs
+               pose:(simd_float4x4)pose
+         intrinsics:(simd_float4)intrinsics {
+  if (pixelBuffer == NULL) {
+    return;
+  }
+
+  CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+  // ARKit frames are biplanar YUV; plane 0 is the full-resolution luma (Y),
+  // which is exactly the grayscale the detector needs.
+  const int width = static_cast<int>(CVPixelBufferGetWidthOfPlane(pixelBuffer, 0));
+  const int height =
+      static_cast<int>(CVPixelBufferGetHeightOfPlane(pixelBuffer, 0));
+  const size_t bytesPerRow =
+      CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+  const uint8_t *base = static_cast<const uint8_t *>(
+      CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0));
+
+  // Copy into a tightly packed buffer (row stride may exceed width).
+  std::vector<uint8_t> gray(static_cast<size_t>(width) * height);
+  for (int row = 0; row < height; ++row) {
+    std::memcpy(gray.data() + static_cast<size_t>(row) * width,
+                base + static_cast<size_t>(row) * bytesPerRow, width);
+  }
+
+  CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+  // ARKit camera looks down -Z with +Y up; the core (solvePnP) expects the
+  // OpenCV convention (+Z forward, +Y down). Flip the Y,Z basis to convert the
+  // camera-to-world transform before handing it to the wrapper.
+  simd_float4x4 flip = matrix_identity_float4x4;
+  flip.columns[1].y = -1.0f;
+  flip.columns[2].z = -1.0f;
+  const simd_float4x4 correctedPose = simd_mul(pose, flip);
+
   // simd_float4x4 is column-major, matching the wrapper's pose layout.
   float poseArray[16];
-  std::memcpy(poseArray, &pose, sizeof(float) * 16);
+  std::memcpy(poseArray, &correctedPose, sizeof(float) * 16);
 
   const float intrinsicsArray[4] = {intrinsics.x, intrinsics.y, intrinsics.z,
                                      intrinsics.w};
 
-  _wrapper.SubmitFrameRGB(timestampNs, rgb, width, height, poseArray,
-                          intrinsicsArray);
+  _wrapper.SubmitFrameGray(timestampNs, gray.data(), width, height, poseArray,
+                           intrinsicsArray);
 }
 
 - (NSArray<TagARTagPose *> *)latestTags {

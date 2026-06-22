@@ -71,6 +71,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
       return
     }
     tagTracker = TagARTracker(configPath: configPath)
+    tagTracker?.start()
   }
 
   private func setupRecordButton() {
@@ -187,10 +188,26 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     renderer.update()
   }
 
+  private func feedTracker(_ frame: ARFrame) {
+    guard let tracker = tagTracker else { return }
+
+    let k = frame.camera.intrinsics
+    let intrinsics = simd_float4(k.columns.0.x, k.columns.1.y,
+                                 k.columns.2.x, k.columns.2.y)
+
+    let timestampNs = Int64(frame.timestamp * 1_000_000_000)
+    tracker.submitFrame(frame.capturedImage,
+                        timestamp: timestampNs,
+                        pose: frame.camera.transform,
+                        intrinsics: intrinsics)
+  }
+
   // MARK: - ARSessionDelegate
 
   // Called every time the session updates with a new captured frame.
   func session(_ session: ARSession, didUpdate frame: ARFrame) {
+    feedTracker(frame)
+
     guard isRecording else { return }
     // Build the presentation time once so video and metadata share the exact same CMTime.
     let timestamp = CMTime(seconds: frame.timestamp, preferredTimescale: 1_000_000_000)

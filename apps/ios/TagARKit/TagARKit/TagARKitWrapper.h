@@ -41,8 +41,8 @@ class Wrapper {
   void Start();
   void Stop();
 
-  void SubmitFrameRGB(int64_t t_ns, const uint8_t* rgb, int width, int height,
-                      const float pose[16], const float intrinsics[4]);
+  void SubmitFrameGray(int64_t t_ns, const uint8_t* gray, int width, int height,
+                       const float pose[16], const float intrinsics[4]);
 
   bool GetLatestResult(WrapperResult& out);
 

@@ -38,18 +38,18 @@ void Wrapper::Start() { impl_->tracker.Start(); }
 
 void Wrapper::Stop() { impl_->tracker.Stop(); }
 
-void Wrapper::SubmitFrameRGB(int64_t t_ns, const uint8_t* rgb, int width,
-                             int height, const float pose[16],
-                             const float intrinsics[4]) {
-  const int length = width * height * 3;
+void Wrapper::SubmitFrameGray(int64_t t_ns, const uint8_t* gray, int width,
+                              int height, const float pose[16],
+                              const float intrinsics[4]) {
+  const int length = width * height;
 
   FrameBuffer frame_buffer;
   frame_buffer.t_ns = t_ns;
   frame_buffer.image_buffer.width = width;
   frame_buffer.image_buffer.height = height;
   frame_buffer.image_buffer.length = length;
-  frame_buffer.image_buffer.format = ColorFormat::kRGB;
-  frame_buffer.image_buffer.buffer.assign(rgb, rgb + length);
+  frame_buffer.image_buffer.format = ColorFormat::kGray;
+  frame_buffer.image_buffer.buffer.assign(gray, gray + length);
   std::memcpy(frame_buffer.pose.data(), pose, sizeof(float) * 16);
   std::memcpy(frame_buffer.intrinsics.data(), intrinsics, sizeof(float) * 4);
 

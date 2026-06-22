@@ -17,6 +17,7 @@
 		F29F09152FE9614E00983A0D /* tracker_config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090E2FE9614E00983A0D /* tracker_config.hpp */; };
 		F29F09162FE9614E00983A0D /* tag.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090F2FE9614E00983A0D /* tag.hpp */; };
 		F29F09182FE9614E00983A0D /* logger.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F09112FE9614E00983A0D /* logger.hpp */; };
+		F29F09232FE96F0200983A0D /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F29F09222FE96F0200983A0D /* CoreVideo.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		F29F090E2FE9614E00983A0D /* tracker_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tracker_config.hpp; path = ../../../../cpp/include/tagar/tracker_config.hpp; sourceTree = "<group>"; };
 		F29F090F2FE9614E00983A0D /* tag.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tag.hpp; path = ../../../../cpp/include/tagar/tag.hpp; sourceTree = "<group>"; };
 		F29F09112FE9614E00983A0D /* logger.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = logger.hpp; path = ../../../../cpp/include/tagar/logger.hpp; sourceTree = "<group>"; };
+		F29F09222FE96F0200983A0D /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk/System/Library/Frameworks/CoreVideo.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,6 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F29F09232FE96F0200983A0D /* CoreVideo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +74,7 @@
 				F29F09192FE9616800983A0D /* include */,
 				F29F091A2FE9618700983A0D /* src */,
 				F29F08E62FE956BC00983A0D /* TagARKit */,
+				F29F09212FE96F0200983A0D /* Frameworks */,
 				F29F08E52FE956BC00983A0D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,6 +109,14 @@
 				F29F09052FE9613200983A0D /* tracker_config.cpp */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		F29F09212FE96F0200983A0D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F29F09222FE96F0200983A0D /* CoreVideo.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
