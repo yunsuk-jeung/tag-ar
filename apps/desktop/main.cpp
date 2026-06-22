@@ -88,9 +88,9 @@ int main() {
       viewer.Draw(cam_axis, T_w_c);
 
       const Eigen::Vector3f t_w_c = T_w_c.col(3).head<3>();
-      const Eigen::Vector3f cam_up = T_w_c.col(1).head<3>();
+      const Eigen::Vector3f cam_up = -T_w_c.col(1).head<3>();
 
-      std::vector<viz::InsetDraw> inset_draws;
+      std::vector<std::pair<Eigen::Matrix4f, GLuint>> inset_draws;
       inset_draws.reserve(result->tags.size());
       for (const auto& tag : result->tags) {
         const Eigen::Map<const Eigen::Matrix4f> T_w_t(tag.T_w_t.data());
@@ -107,12 +107,12 @@ int main() {
         T_w_cube.col(3).head<3>() = t_w_t;
         viewer.Draw(tag_cube, T_w_cube, texture);
 
-        inset_draws.push_back({&tag_cube, T_w_cube, texture});
+        inset_draws.push_back({T_w_cube, texture});
       }
 
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
                                    result->gray.height, result->intrinsics,
-                                   T_w_c, inset_draws);
+                                   T_w_c, tag_cube, inset_draws);
     }
 
     viewer.EndFrame();

@@ -18,12 +18,6 @@ struct GLFWwindow;
 
 namespace viz {
 
-struct InsetDraw {
-  const MeshRenderer* mesh;
-  Eigen::Matrix4f model;
-  GLuint texture = 0;
-};
-
 class Viewer {
  public:
   Viewer() = default;
@@ -45,10 +39,11 @@ class Viewer {
   void Draw(const MeshRenderer& mesh, const Eigen::Matrix4f& model,
             GLuint texture = 0);
 
-  void DrawReprojectionInset(const uint8_t* gray, int gray_w, int gray_h,
-                             const std::array<float, 4>& intrinsics,
-                             const Eigen::Matrix4f& T_w_c,
-                             const std::vector<InsetDraw>& draws);
+  void DrawReprojectionInset(
+      const uint8_t* gray, int gray_w, int gray_h,
+      const std::array<float, 4>& intrinsics, const Eigen::Matrix4f& T_w_c,
+      const MeshRenderer& mesh,
+      const std::vector<std::pair<Eigen::Matrix4f, GLuint>>& draws);
 
   GLCamera& GetCamera() { return camera_; }
 
