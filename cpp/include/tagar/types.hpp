@@ -21,9 +21,16 @@ struct ImageBuffer {
   ColorFormat format = ColorFormat::kUnknown;
 };
 
+struct DepthBuffer {
+  int width = 0;
+  int height = 0;
+  std::vector<float> data;  // row-major, meters
+};
+
 struct FrameBuffer {
   int64_t t_ns;
   ImageBuffer image_buffer;
+  DepthBuffer depth_buffer;         // optional; empty if not captured
   std::array<float, 16> pose;       // 4x4 camera-to-world, column-major
   std::array<float, 4> intrinsics;  // [fx, fy, cx, cy]
 };

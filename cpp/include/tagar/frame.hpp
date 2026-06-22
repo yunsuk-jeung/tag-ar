@@ -22,9 +22,15 @@ class Frame {
   double GetCx() const { return cx_; }
   double GetCy() const { return cy_; }
 
+  bool HasDepth() const { return !depth_.empty(); }
+  float DepthAt(float u_color, float v_color) const;
+
  protected:
   int64_t t_ns_;
   cv::Mat gray_;
+  cv::Mat depth_;  // CV_32F, meters; empty if unavailable
+  float depth_scale_x_ = 1.0f;
+  float depth_scale_y_ = 1.0f;
   Sophus::SE3d T_w_c_;
   double fx_, fy_, cx_, cy_;
 };
