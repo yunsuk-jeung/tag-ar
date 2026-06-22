@@ -68,6 +68,22 @@ bool Viewer::Init(int width, int height, const std::string& title,
   glfwMakeContextCurrent(window_);
   glfwSwapInterval(1);
 
+#if !defined(__APPLE__)
+  // macOS gets the GL functions straight from OpenGL.framework, but on
+  // Linux/Windows the function pointers must be resolved by GLEW *after* a
+  // context is current and *before* any GL call. glewExperimental is required
+  // for core-profile contexts, otherwise some entry points stay NULL.
+  glewExperimental = GL_TRUE;
+  if (GLenum err = glewInit(); err != GLEW_OK) {
+    std::fprintf(stderr, "Viewer: glewInit failed: %s\n",
+                 glewGetErrorString(err));
+    glfwTerminate();
+    return false;
+  }
+  // glewInit can leave a benign GL_INVALID_ENUM on core profiles; clear it.
+  glGetError();
+#endif
+
   if (!shader_.Load(shader_dir + "/mesh.vert", shader_dir + "/mesh.frag")) {
     std::fprintf(stderr, "Viewer: failed to load shaders from %s\n",
                  shader_dir.c_str());

@@ -17,3 +17,8 @@ target_link_libraries(tagar_ar_sample
   glfw
   OpenGL::GL
 )
+
+# Linux needs a GL loader; macOS gets the core API from OpenGL.framework.
+if(NOT APPLE)
+  target_link_libraries(tagar_ar_sample PRIVATE GLEW::GLEW)
+endif()

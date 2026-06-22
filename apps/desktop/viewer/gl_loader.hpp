@@ -10,6 +10,9 @@
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl3.h>
 #else
+// GLEW pulls in the legacy <GL/glu.h> by default; the viewer doesn't use GLU,
+// so skip it (and the libglu dependency) with GLEW_NO_GLU.
+#define GLEW_NO_GLU
 #include <GL/glew.h>
 #endif
 
