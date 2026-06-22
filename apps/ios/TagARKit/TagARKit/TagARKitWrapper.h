@@ -1,5 +1,5 @@
 //
-//  wrapper.h
+//  TagARKitWrapper.h
 //  TagARKit
 //
 //  Pure C++ facade over tagar::Tracker. Hides OpenCV/Sophus/Eigen behind a
@@ -15,13 +15,11 @@
 
 namespace tagar {
 
-// Bridge-boundary mirror of a tracked tag (no Eigen/Sophus types).
 struct WrapperTagPose {
   int id = 0;
   float T_w_t[16] = {};  // 4x4 tag-to-world, column-major
 };
 
-// Bridge-boundary mirror of TrackResult.
 struct WrapperResult {
   int64_t t_ns = 0;
   float T_w_c[16] = {};  // 4x4 camera-to-world, column-major
@@ -40,15 +38,11 @@ class Wrapper {
   void Start();
   void Stop();
 
-  // Submit an RGB frame (3 bytes/pixel, row-major). pose is camera-to-world
-  // (column-major), intrinsics is [fx, fy, cx, cy].
   void SubmitFrameRGB(int64_t t_ns, const uint8_t* rgb, int width, int height,
                       const float pose[16], const float intrinsics[4]);
 
-  // Copy out the latest result. Returns false if none is available yet.
   bool GetLatestResult(WrapperResult& out);
 
-  // Bridge smoke test.
   static void Ping();
 
  private:

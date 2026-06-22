@@ -1,9 +1,9 @@
 //
-//  wrapper.cpp
+//  TagARKitWrapper.cpp
 //  TagARKit
 //
 
-#include "wrapper.h"
+#include "TagARKitWrapper.h"
 
 #include <cstring>
 #include <utility>

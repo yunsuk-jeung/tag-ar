@@ -9,7 +9,7 @@
 
 #include <cstring>
 
-#include "wrapper.h"
+#include "TagARKitWrapper.h"
 
 #pragma mark - TagARTagPose
 
