@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -55,6 +56,7 @@ class FileReader {
 
   bool ParseMetadataJson(const std::string& json_path);
   bool OpenVideo(const std::string& video_path);
+  bool OpenDepth(const std::string& depth_path);
   void ComputeTimestampRange();
 
   std::string dataset_name_;
@@ -68,6 +70,10 @@ class FileReader {
 
   int image_width_ = 0;
   int image_height_ = 0;
+
+  std::ifstream depth_file_;
+  int depth_width_ = 0;
+  int depth_height_ = 0;
 
   int64_t start_timestamp_ns_ = 0;
   int64_t end_timestamp_ns_ = 0;

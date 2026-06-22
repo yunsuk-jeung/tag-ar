@@ -24,9 +24,10 @@ bool FileReader::Init(const std::string& dataset_dir) {
     return false;
   }
 
-  // Pick the first .mp4 and .json in the directory.
+  // Pick the first .mp4, .json, and (optional) .depth in the directory.
   std::string video_path;
   std::string json_path;
+  std::string depth_path;
   for (const auto& entry : fs::directory_iterator(dataset_dir)) {
     if (!entry.is_regular_file()) {
       continue;
@@ -36,6 +37,8 @@ bool FileReader::Init(const std::string& dataset_dir) {
       video_path = entry.path().string();
     } else if (ext == ".json" && json_path.empty()) {
       json_path = entry.path().string();
+    } else if (ext == ".depth" && depth_path.empty()) {
+      depth_path = entry.path().string();
     }
   }
 
@@ -48,6 +51,11 @@ bool FileReader::Init(const std::string& dataset_dir) {
   if (!ParseMetadataJson(json_path) || !OpenVideo(video_path)) {
     Reset();
     return false;
+  }
+
+  // Depth is optional; absence just disables depth-based features.
+  if (!depth_path.empty() && depth_width_ > 0 && depth_height_ > 0) {
+    OpenDepth(depth_path);
   }
 
   dataset_name_ = fs::path(dataset_dir).filename().string();
@@ -66,6 +74,12 @@ void FileReader::Reset() {
   video_index_ = 0;
   image_width_ = 0;
   image_height_ = 0;
+  if (depth_file_.is_open()) {
+    depth_file_.close();
+  }
+  depth_file_.clear();
+  depth_width_ = 0;
+  depth_height_ = 0;
   start_timestamp_ns_ = 0;
   end_timestamp_ns_ = 0;
   initialized_ = false;
@@ -96,6 +110,8 @@ bool FileReader::ParseMetadataJson(const std::string& json_path) {
 
   image_width_ = root.value("imageWidth", 0);
   image_height_ = root.value("imageHeight", 0);
+  depth_width_ = root.value("depthWidth", 0);
+  depth_height_ = root.value("depthHeight", 0);
   const int64_t timescale = root.value("timescale", int64_t{1});
   if (timescale <= 0) {
     LogE("FileReader: invalid timescale: {}", timescale);
@@ -134,6 +150,18 @@ bool FileReader::OpenVideo(const std::string& video_path) {
     return false;
   }
   video_frame_count_ = static_cast<int>(video_->get(cv::CAP_PROP_FRAME_COUNT));
+  return true;
+}
+
+bool FileReader::OpenDepth(const std::string& depth_path) {
+  depth_file_.open(depth_path, std::ios::binary);
+  if (!depth_file_) {
+    LogW("FileReader: cannot open depth blob: {}", depth_path);
+    depth_width_ = 0;
+    depth_height_ = 0;
+    return false;
+  }
+  LogI("FileReader: depth {}x{}", depth_width_, depth_height_);
   return true;
 }
 
@@ -195,6 +223,26 @@ FrameBuffer FileReader::GetNextFrame() {
   img.length = static_cast<int>(rgb.total() * rgb.elemSize());
   img.format = ColorFormat::kRGB;
   img.buffer.assign(rgb.data, rgb.data + img.length);
+
+  // Depth frame for this metadata entry (blob is frames_-aligned).
+  if (depth_file_.is_open() && depth_width_ > 0 && depth_height_ > 0) {
+    const size_t count = static_cast<size_t>(depth_width_) * depth_height_;
+    const std::streamoff offset =
+        static_cast<std::streamoff>(meta_cursor_) * count * sizeof(float);
+    depth_file_.seekg(offset, std::ios::beg);
+
+    DepthBuffer& depth = frame.depth_buffer;
+    depth.width = depth_width_;
+    depth.height = depth_height_;
+    depth.data.resize(count);
+    depth_file_.read(reinterpret_cast<char*>(depth.data.data()),
+                     static_cast<std::streamsize>(count * sizeof(float)));
+    if (!depth_file_) {
+      // Short/failed read: drop depth for this frame rather than use garbage.
+      frame.depth_buffer = DepthBuffer{};
+      depth_file_.clear();
+    }
+  }
 
   return frame;
 }
