@@ -76,6 +76,10 @@ bool Wrapper::GetLatestResult(WrapperResult& out) {
   return true;
 }
 
+void Wrapper::InitLogging(const char* log_dir) {
+  Logger::Init(true, log_dir ? log_dir : "logs");
+}
+
 void Wrapper::Ping() { LogI("[TagARKit] wrapper bridge OK"); }
 
 }  // namespace tagar

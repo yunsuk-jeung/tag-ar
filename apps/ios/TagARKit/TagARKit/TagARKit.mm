@@ -46,6 +46,10 @@
   tagar::Wrapper _wrapper;
 }
 
++ (void)setLogDirectory:(NSString *)directory {
+  tagar::Wrapper::InitLogging(directory.UTF8String);
+}
+
 - (instancetype)initWithConfigPath:(NSString *)configPath {
   if (self = [super init]) {
     _wrapper.InitWithConfigFile(configPath.UTF8String);

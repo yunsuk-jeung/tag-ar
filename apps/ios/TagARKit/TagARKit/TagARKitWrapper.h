@@ -46,6 +46,8 @@ class Wrapper {
 
   bool GetLatestResult(WrapperResult& out);
 
+  static void InitLogging(const char* log_dir);
+
   static void Ping();
 
  private:

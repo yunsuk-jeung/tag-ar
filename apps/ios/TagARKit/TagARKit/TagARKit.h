@@ -24,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TagARTracker : NSObject
 
++ (void)setLogDirectory:(NSString *)directory;
+
 - (instancetype)initWithConfigPath:(NSString *)configPath NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;

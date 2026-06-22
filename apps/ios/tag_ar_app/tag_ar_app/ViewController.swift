@@ -62,12 +62,15 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
   }
 
   private func setupTagTracker() {
+    let logDir = FileManager.default
+      .urls(for: .cachesDirectory, in: .userDomainMask)[0].path
+    TagARTracker.setLogDirectory(logDir)
+
     guard let configPath = Bundle.main.path(forResource: "tracker", ofType: "json") else {
       print("[TagARKit] ERROR: tracker.json not found in app bundle")
       return
     }
     tagTracker = TagARTracker(configPath: configPath)
-    print("[TagARKit] tracker created: \(String(describing: tagTracker))")
   }
 
   private func setupRecordButton() {
