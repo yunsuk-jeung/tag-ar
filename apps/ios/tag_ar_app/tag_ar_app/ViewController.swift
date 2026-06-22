@@ -200,6 +200,10 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
                         timestamp: timestampNs,
                         pose: frame.camera.transform,
                         intrinsics: intrinsics)
+
+    renderer?.tagInstances = tracker.latestTags().map {
+      Renderer.TagInstance(id: Int32($0.tagId), transform: $0.transform)
+    }
   }
 
   // MARK: - ARSessionDelegate

@@ -83,7 +83,14 @@ class Renderer {
     
     // The number of anchor instances to render
     var anchorInstanceCount: Int = 0
-    
+
+    struct TagInstance {
+        var id: Int32
+        var transform: matrix_float4x4
+    }
+
+    var tagInstances: [TagInstance] = []
+
     // The current viewport size
     var viewportSize: CGSize = CGSize()
     
@@ -385,23 +392,25 @@ class Renderer {
     }
     
     func updateAnchors(frame: ARFrame) {
-        // Update the anchor uniform buffer with transforms of the current frame's anchors
-        anchorInstanceCount = min(frame.anchors.count, kMaxAnchorInstanceCount)
-        
+        let transforms: [matrix_float4x4] =
+            frame.anchors.map { $0.transform } + tagInstances.map { $0.transform }
+
+        anchorInstanceCount = min(transforms.count, kMaxAnchorInstanceCount)
+
         var anchorOffset: Int = 0
         if anchorInstanceCount == kMaxAnchorInstanceCount {
-            anchorOffset = max(frame.anchors.count - kMaxAnchorInstanceCount, 0)
+            anchorOffset = max(transforms.count - kMaxAnchorInstanceCount, 0)
         }
-        
+
         for index in 0..<anchorInstanceCount {
-            let anchor = frame.anchors[index + anchorOffset]
-            
+            let transform = transforms[index + anchorOffset]
+
             // Flip Z axis to convert geometry from right handed to left handed
             var coordinateSpaceTransform = matrix_identity_float4x4
             coordinateSpaceTransform.columns.2.z = -1.0
-            
-            let modelMatrix = simd_mul(anchor.transform, coordinateSpaceTransform)
-            
+
+            let modelMatrix = simd_mul(transform, coordinateSpaceTransform)
+
             let anchorUniforms = anchorUniformBufferAddress.assumingMemoryBound(to: InstanceUniforms.self).advanced(by: index)
             anchorUniforms.pointee.modelMatrix = modelMatrix
         }
