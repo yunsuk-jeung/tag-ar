@@ -6,8 +6,31 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F29F09072FE9613200983A0D /* frame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F29F09032FE9613200983A0D /* frame.cpp */; };
+		F29F09082FE9613200983A0D /* tracker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F29F09042FE9613200983A0D /* tracker.cpp */; };
+		F29F09092FE9613200983A0D /* tracker_config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F29F09052FE9613200983A0D /* tracker_config.cpp */; };
+		F29F090A2FE9613200983A0D /* tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F29F09062FE9613200983A0D /* tag.cpp */; };
+		F29F09122FE9614E00983A0D /* frame.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090B2FE9614E00983A0D /* frame.hpp */; };
+		F29F09132FE9614E00983A0D /* types.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090C2FE9614E00983A0D /* types.hpp */; };
+		F29F09142FE9614E00983A0D /* tracker.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090D2FE9614E00983A0D /* tracker.hpp */; };
+		F29F09152FE9614E00983A0D /* tracker_config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090E2FE9614E00983A0D /* tracker_config.hpp */; };
+		F29F09162FE9614E00983A0D /* tag.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090F2FE9614E00983A0D /* tag.hpp */; };
+		F29F09182FE9614E00983A0D /* logger.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F09112FE9614E00983A0D /* logger.hpp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		F29F08E42FE956BC00983A0D /* TagARKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TagARKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F29F09032FE9613200983A0D /* frame.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = frame.cpp; path = ../../../../cpp/src/frame.cpp; sourceTree = "<group>"; };
+		F29F09042FE9613200983A0D /* tracker.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = tracker.cpp; path = ../../../../cpp/src/tracker.cpp; sourceTree = "<group>"; };
+		F29F09052FE9613200983A0D /* tracker_config.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = tracker_config.cpp; path = ../../../../cpp/src/tracker_config.cpp; sourceTree = "<group>"; };
+		F29F09062FE9613200983A0D /* tag.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = tag.cpp; path = ../../../../cpp/src/tag.cpp; sourceTree = "<group>"; };
+		F29F090B2FE9614E00983A0D /* frame.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = frame.hpp; path = ../../../../cpp/include/tagar/frame.hpp; sourceTree = "<group>"; };
+		F29F090C2FE9614E00983A0D /* types.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = types.hpp; path = ../../../../cpp/include/tagar/types.hpp; sourceTree = "<group>"; };
+		F29F090D2FE9614E00983A0D /* tracker.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tracker.hpp; path = ../../../../cpp/include/tagar/tracker.hpp; sourceTree = "<group>"; };
+		F29F090E2FE9614E00983A0D /* tracker_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tracker_config.hpp; path = ../../../../cpp/include/tagar/tracker_config.hpp; sourceTree = "<group>"; };
+		F29F090F2FE9614E00983A0D /* tag.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tag.hpp; path = ../../../../cpp/include/tagar/tag.hpp; sourceTree = "<group>"; };
+		F29F09112FE9614E00983A0D /* logger.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = logger.hpp; path = ../../../../cpp/include/tagar/logger.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -45,6 +68,8 @@
 		F29F08DA2FE956BC00983A0D = {
 			isa = PBXGroup;
 			children = (
+				F29F09192FE9616800983A0D /* include */,
+				F29F091A2FE9618700983A0D /* src */,
 				F29F08E62FE956BC00983A0D /* TagARKit */,
 				F29F08E52FE956BC00983A0D /* Products */,
 			);
@@ -58,6 +83,30 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		F29F09192FE9616800983A0D /* include */ = {
+			isa = PBXGroup;
+			children = (
+				F29F090B2FE9614E00983A0D /* frame.hpp */,
+				F29F09112FE9614E00983A0D /* logger.hpp */,
+				F29F090F2FE9614E00983A0D /* tag.hpp */,
+				F29F090E2FE9614E00983A0D /* tracker_config.hpp */,
+				F29F090D2FE9614E00983A0D /* tracker.hpp */,
+				F29F090C2FE9614E00983A0D /* types.hpp */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		F29F091A2FE9618700983A0D /* src */ = {
+			isa = PBXGroup;
+			children = (
+				F29F09032FE9613200983A0D /* frame.cpp */,
+				F29F09062FE9613200983A0D /* tag.cpp */,
+				F29F09042FE9613200983A0D /* tracker.cpp */,
+				F29F09052FE9613200983A0D /* tracker_config.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -65,6 +114,12 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F29F09122FE9614E00983A0D /* frame.hpp in Headers */,
+				F29F09132FE9614E00983A0D /* types.hpp in Headers */,
+				F29F09142FE9614E00983A0D /* tracker.hpp in Headers */,
+				F29F09152FE9614E00983A0D /* tracker_config.hpp in Headers */,
+				F29F09162FE9614E00983A0D /* tag.hpp in Headers */,
+				F29F09182FE9614E00983A0D /* logger.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,6 +197,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F29F09072FE9613200983A0D /* frame.cpp in Sources */,
+				F29F09082FE9613200983A0D /* tracker.cpp in Sources */,
+				F29F09092FE9613200983A0D /* tracker_config.cpp in Sources */,
+				F29F090A2FE9613200983A0D /* tag.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +218,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -190,6 +253,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -256,6 +320,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					SPDLOG_USE_STD_FORMAT,
+					SPDLOG_COMPILED_LIB,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -264,11 +330,35 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../../libs/ios/release/include/eigen3\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/opencv4\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/sophus\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/spdlog\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include\"",
+					"\"$(SRCROOT)/../../../cpp/include\"",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LIBRARY_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../../libs/ios/release/lib\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/lib/opencv4/3rdparty\"",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-lopencv_world",
+					"-lspdlog",
+					"-llibpng",
+					"-llibjpeg-turbo",
+					"-llibwebp",
+					"-lzlib",
+					"-littnotify",
+					"-lkleidicv",
+					"-lkleidicv_hal",
+					"-lkleidicv_thread",
+				);
 				SDKROOT = iphoneos;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -317,16 +407,44 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					SPDLOG_COMPILED_LIB,
+					SPDLOG_USE_STD_FORMAT,
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../../libs/ios/release/include/eigen3\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/opencv4\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/sophus\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include/spdlog\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/include\"",
+					"\"$(SRCROOT)/../../../cpp/include\"",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LIBRARY_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../../libs/ios/release/lib\"",
+					"\"$(SRCROOT)/../../../libs/ios/release/lib/opencv4/3rdparty\"",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-lopencv_world",
+					"-lspdlog",
+					"-llibpng",
+					"-llibjpeg-turbo",
+					"-llibwebp",
+					"-lzlib",
+					"-littnotify",
+					"-lkleidicv",
+					"-lkleidicv_hal",
+					"-lkleidicv_thread",
+				);
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";

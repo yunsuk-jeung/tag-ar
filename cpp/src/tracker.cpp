@@ -8,8 +8,6 @@
 
 #include <Eigen/Core>
 #include <opencv2/calib3d.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 
 #include "tagar/tracker.hpp"
@@ -40,17 +38,6 @@ Sophus::SE3d CamFromTag(const cv::Mat& rvec, const cv::Mat& tvec) {
   return Sophus::SE3d(Sophus::SO3d::exp(omega), t);
 }
 }  // namespace
-
-namespace debug {
-void VisualizeTag(Frame& frame, std::vector<std::vector<cv::Point2f>> corners,
-                  std::vector<int> ids) {
-  cv::Mat vis;
-  cv::cvtColor(frame.GetGray(), vis, cv::COLOR_GRAY2BGR);
-  cv::aruco::drawDetectedMarkers(vis, corners, ids);
-  cv::imshow("tags", vis);
-  cv::waitKey();
-}
-}  // namespace debug
 
 Tracker::Tracker()
     : detector_(
