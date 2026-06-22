@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -21,19 +23,22 @@ class Tracker {
   bool Init(const TrackerConfig& config);
   void SubmitFrame(FrameBuffer frame_buffer);
 
+  void Start();
+  void Stop();
+
   void ProcessOnce();
 
   std::shared_ptr<const TrackResult> GetLatestResult() const;
 
  protected:
-  void Process();
-  // void Track();
-  // void DetectTags();
-  // void EstimatePoses();
+  void Run();
+  void ProcessFrame(FrameBuffer frame_buffer);
 
  private:
   std::thread thread_;
+  std::atomic<bool> running_{false};
   std::mutex frame_buffer_lock;
+  std::condition_variable frame_cv_;
   std::queue<FrameBuffer> frame_buffer_queue_;
 
   cv::aruco::ArucoDetector detector_;

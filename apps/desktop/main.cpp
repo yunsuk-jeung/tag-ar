@@ -72,13 +72,11 @@ int main() {
   const float kTagHalfSize = 0.02f;
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
+  tag_tracker->Start();
+  simulator->Start();
+
   while (!viewer.ShouldClose()) {
     viewer.PollEvents();
-
-    if (file_reader->HasNextFrame()) {
-      simulator->FeedFrame();
-      tag_tracker->ProcessOnce();
-    }
 
     viewer.BeginFrame();
     viewer.Draw(origin_axis, kIdentity);
@@ -108,5 +106,7 @@ int main() {
     viewer.EndFrame();
   }
 
+  simulator->Stop();
+  tag_tracker->Stop();
   return 0;
 }

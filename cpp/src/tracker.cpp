@@ -57,7 +57,7 @@ Tracker::Tracker()
           cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11),
           MakeDetectorParams()) {}
 
-Tracker::~Tracker() {}
+Tracker::~Tracker() { Stop(); }
 
 bool Tracker::Init(const TrackerConfig& config) {
   config_ = config;
@@ -66,8 +66,46 @@ bool Tracker::Init(const TrackerConfig& config) {
 }
 
 void Tracker::SubmitFrame(FrameBuffer frame_buffer) {
-  std::lock_guard<std::mutex> lock(frame_buffer_lock);
-  frame_buffer_queue_.push(std::move(frame_buffer));
+  {
+    std::lock_guard<std::mutex> lock(frame_buffer_lock);
+    frame_buffer_queue_.push(std::move(frame_buffer));
+  }
+  frame_cv_.notify_one();
+}
+
+void Tracker::Start() {
+  if (running_.exchange(true)) {
+    return;  // already running
+  }
+  thread_ = std::thread(&Tracker::Run, this);
+}
+
+void Tracker::Stop() {
+  if (!running_.exchange(false)) {
+    return;
+  }
+  frame_cv_.notify_all();
+  if (thread_.joinable()) {
+    thread_.join();
+  }
+}
+
+void Tracker::Run() {
+  while (running_) {
+    FrameBuffer frame_buffer;
+    {
+      std::unique_lock<std::mutex> lock(frame_buffer_lock);
+      frame_cv_.wait(lock, [this] {
+        return !running_ || !frame_buffer_queue_.empty();
+      });
+      if (!running_ && frame_buffer_queue_.empty()) {
+        return;
+      }
+      frame_buffer = std::move(frame_buffer_queue_.front());
+      frame_buffer_queue_.pop();
+    }
+    ProcessFrame(std::move(frame_buffer));
+  }
 }
 
 void Tracker::ProcessOnce() {
@@ -80,7 +118,10 @@ void Tracker::ProcessOnce() {
     frame_buffer = std::move(frame_buffer_queue_.front());
     frame_buffer_queue_.pop();
   }
+  ProcessFrame(std::move(frame_buffer));
+}
 
+void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
   Frame frame(std::move(frame_buffer));
 
   std::vector<int> ids;
@@ -166,7 +207,5 @@ std::shared_ptr<const TrackResult> Tracker::GetLatestResult() const {
   std::lock_guard<std::mutex> lock(result_mutex_);
   return latest_result_;
 }
-
-void Tracker::Process() {}
 
 }  // namespace tagar
