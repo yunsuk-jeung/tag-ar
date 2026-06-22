@@ -91,6 +91,11 @@ class Renderer {
 
     var tagInstances: [TagInstance] = []
 
+    var tagCubePipelineState: MTLRenderPipelineState!
+    private lazy var textureLoader = MTKTextureLoader(device: device)
+    private var tagTextureCache: [Int32: MTLTexture] = [:]
+    private var triedTextureIds: Set<Int32> = []
+
     // The current viewport size
     var viewportSize: CGSize = CGSize()
     
@@ -145,6 +150,7 @@ class Renderer {
                 
                 drawCapturedImage(renderEncoder: renderEncoder)
                 drawAnchorGeometry(renderEncoder: renderEncoder)
+                drawTagCubes(renderEncoder: renderEncoder)
                 
                 // We're done encoding commands
                 renderEncoder.endEncoding()
@@ -296,6 +302,26 @@ class Renderer {
         anchorDepthStateDescriptor.depthCompareFunction = .less
         anchorDepthStateDescriptor.isDepthWriteEnabled = true
         anchorDepthState = device.makeDepthStencilState(descriptor: anchorDepthStateDescriptor)
+
+        // Pipeline for textured tag cubes (reuses the cube mesh vertex layout).
+        let tagCubeVertexFunction = defaultLibrary.makeFunction(name: "tagCubeVertexTransform")!
+        let tagCubeFragmentFunction = defaultLibrary.makeFunction(name: "tagCubeFragmentShader")!
+
+        let tagCubePipelineDescriptor = MTLRenderPipelineDescriptor()
+        tagCubePipelineDescriptor.label = "TagCubePipeline"
+        tagCubePipelineDescriptor.rasterSampleCount = renderDestination.sampleCount
+        tagCubePipelineDescriptor.vertexFunction = tagCubeVertexFunction
+        tagCubePipelineDescriptor.fragmentFunction = tagCubeFragmentFunction
+        tagCubePipelineDescriptor.vertexDescriptor = geometryVertexDescriptor
+        tagCubePipelineDescriptor.colorAttachments[0].pixelFormat = renderDestination.colorPixelFormat
+        tagCubePipelineDescriptor.depthAttachmentPixelFormat = renderDestination.depthStencilPixelFormat
+        tagCubePipelineDescriptor.stencilAttachmentPixelFormat = renderDestination.depthStencilPixelFormat
+
+        do {
+            try tagCubePipelineState = device.makeRenderPipelineState(descriptor: tagCubePipelineDescriptor)
+        } catch let error {
+            print("Failed to create tag cube pipeline state, error \(error)")
+        }
         
         // Create the command queue
         commandQueue = device.makeCommandQueue()
@@ -392,18 +418,15 @@ class Renderer {
     }
     
     func updateAnchors(frame: ARFrame) {
-        let transforms: [matrix_float4x4] =
-            frame.anchors.map { $0.transform } + tagInstances.map { $0.transform }
-
-        anchorInstanceCount = min(transforms.count, kMaxAnchorInstanceCount)
+        anchorInstanceCount = min(frame.anchors.count, kMaxAnchorInstanceCount)
 
         var anchorOffset: Int = 0
         if anchorInstanceCount == kMaxAnchorInstanceCount {
-            anchorOffset = max(transforms.count - kMaxAnchorInstanceCount, 0)
+            anchorOffset = max(frame.anchors.count - kMaxAnchorInstanceCount, 0)
         }
 
         for index in 0..<anchorInstanceCount {
-            let transform = transforms[index + anchorOffset]
+            let transform = frame.anchors[index + anchorOffset].transform
 
             // Flip Z axis to convert geometry from right handed to left handed
             var coordinateSpaceTransform = matrix_identity_float4x4
@@ -512,5 +535,83 @@ class Renderer {
         }
         
         renderEncoder.popDebugGroup()
+    }
+
+    func drawTagCubes(renderEncoder: MTLRenderCommandEncoder) {
+        guard !tagInstances.isEmpty, let frame = session.currentFrame else {
+            return
+        }
+
+        renderEncoder.pushDebugGroup("DrawTagCubes")
+
+        renderEncoder.setCullMode(.none)
+        renderEncoder.setRenderPipelineState(tagCubePipelineState)
+        renderEncoder.setDepthStencilState(anchorDepthState)
+        renderEncoder.setVertexBuffer(sharedUniformBuffer, offset: sharedUniformBufferOffset, index: Int(kBufferIndexSharedUniforms.rawValue))
+
+        let cameraTransform = frame.camera.transform
+        let cameraPosition = simd_make_float3(cameraTransform.columns.3)
+        let cameraUp = simd_make_float3(cameraTransform.columns.1)
+
+        for tag in tagInstances {
+            guard let texture = texture(for: tag.id) else { continue }
+
+            let tagPosition = simd_make_float3(tag.transform.columns.3)
+            let z = simd_normalize(cameraPosition - tagPosition)
+            let x = simd_normalize(simd_cross(cameraUp, z))
+            let y = simd_cross(z, x)
+
+            var modelMatrix = matrix_identity_float4x4
+            modelMatrix.columns.0 = simd_float4(x.x, x.y, x.z, 0)
+            modelMatrix.columns.1 = simd_float4(y.x, y.y, y.z, 0)
+            modelMatrix.columns.2 = simd_float4(z.x, z.y, z.z, 0)
+            modelMatrix.columns.3 = simd_float4(tagPosition.x, tagPosition.y, tagPosition.z, 1)
+
+            renderEncoder.setVertexBytes(&modelMatrix,
+                                         length: MemoryLayout<matrix_float4x4>.stride,
+                                         index: Int(kBufferIndexInstanceUniforms.rawValue))
+            renderEncoder.setFragmentTexture(texture, index: Int(kTextureIndexColor.rawValue))
+
+            for bufferIndex in 0..<cubeMesh.vertexBuffers.count {
+                let vertexBuffer = cubeMesh.vertexBuffers[bufferIndex]
+                renderEncoder.setVertexBuffer(vertexBuffer.buffer, offset: vertexBuffer.offset, index: bufferIndex)
+            }
+
+            for submesh in cubeMesh.submeshes {
+                renderEncoder.drawIndexedPrimitives(type: submesh.primitiveType,
+                                                    indexCount: submesh.indexCount,
+                                                    indexType: submesh.indexType,
+                                                    indexBuffer: submesh.indexBuffer.buffer,
+                                                    indexBufferOffset: submesh.indexBuffer.offset,
+                                                    instanceCount: 1)
+            }
+        }
+
+        renderEncoder.popDebugGroup()
+    }
+
+    private func texture(for id: Int32) -> MTLTexture? {
+        if let cached = tagTextureCache[id] {
+            return cached
+        }
+        if triedTextureIds.contains(id) {
+            return nil  
+        }
+        triedTextureIds.insert(id)
+
+        guard let url = Bundle.main.url(forResource: "\(id)", withExtension: "png") else {
+            print("[TagARKit] texture not found: \(id).png")
+            return nil
+        }
+        let options: [MTKTextureLoader.Option: Any] = [
+            .origin: MTKTextureLoader.Origin.topLeft,
+            .SRGB: false,
+        ]
+        guard let texture = try? textureLoader.newTexture(URL: url, options: options) else {
+            print("[TagARKit] failed to load texture: \(id).png")
+            return nil
+        }
+        tagTextureCache[id] = texture
+        return texture
     }
 }

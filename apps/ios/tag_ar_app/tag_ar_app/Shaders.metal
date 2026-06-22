@@ -72,6 +72,37 @@ typedef struct {
 
 typedef struct {
     float4 position [[position]];
+    float2 texCoord;
+    float3 viewNormal;
+} TagCubeInOut;
+
+vertex TagCubeInOut tagCubeVertexTransform(Vertex in [[stage_in]],
+                                           constant SharedUniforms &sharedUniforms [[ buffer(kBufferIndexSharedUniforms) ]],
+                                           constant float4x4 &modelMatrix [[ buffer(kBufferIndexInstanceUniforms) ]]) {
+    TagCubeInOut out;
+    float4x4 modelViewMatrix = sharedUniforms.viewMatrix * modelMatrix;
+    float4 position = float4(in.position, 1.0);
+    out.position = sharedUniforms.projectionMatrix * modelViewMatrix * position;
+    out.texCoord = in.texCoord;
+    // View-space normal (assumes no non-uniform scale).
+    out.viewNormal = (modelViewMatrix * float4(float3(in.normal), 0.0)).xyz;
+    return out;
+}
+
+fragment float4 tagCubeFragmentShader(TagCubeInOut in [[stage_in]],
+                                      texture2d<float, access::sample> colorMap [[ texture(kTextureIndexColor) ]]) {
+    constexpr sampler colorSampler(mag_filter::linear, min_filter::linear);
+
+    float3 n = normalize(in.viewNormal);
+    if (n.z > 0.5) {
+        return colorMap.sample(colorSampler, in.texCoord);
+    }
+    return float4(0.15, 0.15, 0.18, 1.0);
+}
+
+
+typedef struct {
+    float4 position [[position]];
     float4 color;
     half3  eyePosition;
     half3  normal;
