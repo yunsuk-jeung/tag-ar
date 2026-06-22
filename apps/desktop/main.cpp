@@ -106,6 +106,7 @@ int main(int argc, char** argv) {
         T_w_cube.col(1).head<3>() = y;
         T_w_cube.col(2).head<3>() = z;
         T_w_cube.col(3).head<3>() = t_w_t;
+
         // viewer.Draw(tag_cube, T_w_cube, texture);
         viewer.Draw(tag_cube, T_w_t, texture);
 

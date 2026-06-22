@@ -34,8 +34,6 @@ class Wrapper {
   Wrapper(const Wrapper&) = delete;
   Wrapper& operator=(const Wrapper&) = delete;
 
-  bool Init(float tag_size_m, std::size_t pose_buffer_size);
-
   bool InitWithConfigFile(const char* config_path);
 
   void Start();

@@ -25,18 +25,12 @@ TrackerConfig TrackerConfig::Load(const std::string& file) {
   }
 
   config.tag_size_m = json.value("tag_size_m", config.tag_size_m);
-  config.tag_pose_buffer_size =
-      json.value("pose_buffer_size", config.tag_pose_buffer_size);
 
   if (config.tag_size_m <= 0.0f) {
     config.tag_size_m = 0.08f;
   }
-  if (config.tag_pose_buffer_size < 1) {
-    config.tag_pose_buffer_size = 1;
-  }
 
   LogI("TrackerConfig.tag_size_m: {}", config.tag_size_m);
-  LogI("TrackerConfig.pose_buffer_size: {}", config.tag_pose_buffer_size);
   return config;
 }
 

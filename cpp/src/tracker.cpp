@@ -177,8 +177,8 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
     }
 
     std::optional<Sophus::SE3d> prev;
-    if (auto it = tags_.find(ids[i]); it != tags_.end()) {
-      prev = it->second.GetLatestPose();
+    if (auto it = last_pose_.find(ids[i]); it != last_pose_.end()) {
+      prev = it->second;
     }
 
     bool best_set = false;
@@ -201,12 +201,10 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
       }
     }
 
-    const Eigen::Vector3d p = T_w_t.translation();
-
-    auto [it, _] =
-        tags_.try_emplace(ids[i], ids[i], config_.tag_pose_buffer_size);
-    Tag& tag = it->second;
-    tag.AddPose(frame.GetTimestampNs(), T_w_t);
+    // TODO(filter): smooth T_w_t over time (EMA / low-pass + outlier gate)
+    // before publishing. Depth disambiguation removes orientation flips, but
+    // per-frame translation/rotation jitter can still remain.
+    last_pose_[ids[i]] = T_w_t;
 
     result->tags.push_back({ids[i], ToPoseArray(T_w_t)});
   }
