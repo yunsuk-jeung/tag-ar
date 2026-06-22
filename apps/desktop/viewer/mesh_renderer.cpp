@@ -83,6 +83,16 @@ MeshData MakeCube(float half_extent) {
       {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},   // +Y top
       {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}   // -Y bottom
   };
+  // Only the +Z face maps to the full texture; the other faces sample the
+  // texture's white corner (0,0) so color*white leaves their flat color.
+  m.uvs = {
+      {0, 1}, {1, 1}, {1, 0}, {0, 0},  // +Z front: full texture
+      {0, 0}, {0, 0}, {0, 0}, {0, 0},  // -Z back
+      {0, 0}, {0, 0}, {0, 0}, {0, 0},  // +X right
+      {0, 0}, {0, 0}, {0, 0}, {0, 0},  // -X left
+      {0, 0}, {0, 0}, {0, 0}, {0, 0},  // +Y top
+      {0, 0}, {0, 0}, {0, 0}, {0, 0}   // -Y bottom
+  };
   m.indices = {
       0,  1,  2,  0,  2,  3,   // +Z front
       4,  5,  6,  4,  6,  7,   // -Z back
