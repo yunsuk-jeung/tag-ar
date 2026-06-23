@@ -96,6 +96,11 @@ Desktop replay에 사용한 recorded dataset은 repository의 `datasets/` 디렉
 
 각 dataset 디렉터리는 같은 basename의 `.mp4`, `.json`, 선택적 `.depth` 파일로 구성됩니다. 예를 들어 `datasets/09`는 RGB 영상, ARKit metadata, depth blob을 함께 사용합니다.
 
+## Demo
+
+- [Desktop demo video](https://youtu.be/jRqBUkxuKtc)
+- [iPhone demo video](https://youtu.be/tFITOZecvIE)
+
 ## Test
 
 자동화 테스트는 최소 범위만 포함되어 있습니다.
