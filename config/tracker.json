@@ -3,12 +3,12 @@
   "tag_discard_time_threshold": 0.08e9,
   "target_width": 640,
   "flow_enabled": true,
-  "flow_fb_threshold_px": 0.5,
+  "flow_fb_threshold_px": 0.2,
   "depth_refine_enabled": true,
   "max_depth_samples": 256,
   "refine_sigma_px": 1.0,
-  "refine_sigma_z": 0.4,
-  "refine_huber_m": 0.8,
+  "refine_sigma_z": 0.02,
+  "refine_huber_m": 0.04,
   "refine_max_iters": 5,
   "filter_enabled": true,
   "filter_translation": true,
@@ -17,5 +17,5 @@
   "pos_beta": 100,
   "rot_min_cutoff": 1.0,
   "rot_beta": 0.5,
-  "d_cutoff": 3.0
+  "d_cutoff": 1.0
 }
