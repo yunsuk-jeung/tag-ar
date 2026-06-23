@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
-  const bool kStepMode = true;
+  const bool kStepMode = false;
 
   if (!kStepMode) {
     tag_tracker->Start();

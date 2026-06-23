@@ -1,3 +1,12 @@
 {
-  "tag_size_m": 0.085
+  "tag_size_m": 0.085,
+
+  "filter_enabled": true,
+  "filter_translation": false,
+  "filter_rotation": true,
+  "pos_min_cutoff": 1.0,
+  "pos_beta": 0.5,
+  "rot_min_cutoff": 1.0,
+  "rot_beta": 0.5,
+  "d_cutoff": 1.0
 }

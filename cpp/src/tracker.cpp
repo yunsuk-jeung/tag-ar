@@ -15,6 +15,7 @@
 #include "tagar/tracker.hpp"
 #include "tagar/frame.hpp"
 #include "tagar/logger.hpp"
+#include "tagar/one_euro_filter.hpp"
 
 namespace tagar {
 
@@ -58,6 +59,17 @@ double DepthScore(const Sophus::SE3d& T_c_t,
     ++n;
   }
   return n > 0 ? err / n : std::numeric_limits<double>::infinity();
+}
+
+Tag MakeTag(int id, const TrackerConfig& config) {
+  std::unique_ptr<PoseFilter> filter;
+  if (config.filter_enabled) {
+    filter = std::make_unique<OneEuroPoseFilter>(
+        config.pos_min_cutoff, config.pos_beta, config.rot_min_cutoff,
+        config.rot_beta, config.d_cutoff, config.filter_translation,
+        config.filter_rotation);
+  }
+  return Tag(id, std::move(filter));
 }
 }  // namespace
 
@@ -185,10 +197,13 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
       continue;
     }
 
-    std::optional<Sophus::SE3d> prev;
-    if (auto it = last_pose_.find(ids[i]); it != last_pose_.end()) {
-      prev = it->second;
+    auto tag_it = tags_.find(ids[i]);
+    if (tag_it == tags_.end()) {
+      tag_it = tags_.emplace(ids[i], MakeTag(ids[i], config_)).first;
     }
+    Tag& tag = tag_it->second;
+
+    const std::optional<Sophus::SE3d> prev = tag.GetTwt();
 
     bool best_set = false;
     double best_score = 0.0;
@@ -210,12 +225,9 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
       }
     }
 
-    // TODO(filter): smooth T_w_t over time (EMA / low-pass + outlier gate)
-    // before publishing. Depth disambiguation removes orientation flips, but
-    // per-frame translation/rotation jitter can still remain.
-    last_pose_[ids[i]] = T_w_t;
+    const Sophus::SE3d& T_w_t_pub = tag.AddPose(frame.GetTimestampNs(), T_w_t);
 
-    result->tags.push_back({ids[i], ToPoseArray(T_w_t)});
+    result->tags.push_back({ids[i], ToPoseArray(T_w_t_pub)});
   }
 
   {

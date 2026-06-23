@@ -6,6 +6,7 @@ target_sources(
   tagar_core
   PRIVATE
   src/tracker.cpp
+  src/tag.cpp
   src/frame.cpp
   src/file_reader.cpp
   src/tracker_config.cpp

@@ -30,7 +30,19 @@ TrackerConfig TrackerConfig::Load(const std::string& file) {
     config.tag_size_m = 0.08f;
   }
 
-  LogI("TrackerConfig.tag_size_m: {}", config.tag_size_m);
+  config.filter_enabled = json.value("filter_enabled", config.filter_enabled);
+  config.filter_translation =
+      json.value("filter_translation", config.filter_translation);
+  config.filter_rotation =
+      json.value("filter_rotation", config.filter_rotation);
+  config.pos_min_cutoff = json.value("pos_min_cutoff", config.pos_min_cutoff);
+  config.pos_beta = json.value("pos_beta", config.pos_beta);
+  config.rot_min_cutoff = json.value("rot_min_cutoff", config.rot_min_cutoff);
+  config.rot_beta = json.value("rot_beta", config.rot_beta);
+  config.d_cutoff = json.value("d_cutoff", config.d_cutoff);
+
+  LogI("TrackerConfig.tag_size_m: {}  filter_enabled: {}", config.tag_size_m,
+       config.filter_enabled);
   return config;
 }
 
