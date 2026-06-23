@@ -8,7 +8,7 @@
 
 namespace tagar {
 
-Frame::Frame(FrameBuffer frame_buffer) {
+Frame::Frame(FrameBuffer frame_buffer, int target_width) {
   t_ns_ = frame_buffer.t_ns;
   fx_ = frame_buffer.intrinsics[0];
   fy_ = frame_buffer.intrinsics[1];
@@ -35,6 +35,16 @@ Frame::Frame(FrameBuffer frame_buffer) {
       cv::cvtColor(rgb, gray_, cv::COLOR_RGB2GRAY);
       break;
     }
+  }
+
+  if (target_width > 0 && target_width < gray_.cols) {
+    const double scale = static_cast<double>(target_width) / gray_.cols;
+    const int h = static_cast<int>(std::lround(gray_.rows * scale));
+    cv::resize(gray_, gray_, cv::Size(target_width, h), 0, 0, cv::INTER_AREA);
+    fx_ *= scale;
+    fy_ *= scale;
+    cx_ *= scale;
+    cy_ *= scale;
   }
 
   const DepthBuffer& depth = frame_buffer.depth_buffer;

@@ -8,6 +8,7 @@ namespace tagar {
 struct TrackerConfig {
   float tag_size_m = 0.085f;
   int64_t tag_discard_time_threshold = 8e7;
+  int target_width = 640;
   // tag pose optimization
   bool depth_refine_enabled = true;
   int max_depth_samples = 256;

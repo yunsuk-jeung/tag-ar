@@ -33,16 +33,6 @@ std::array<float, 16> ToPoseArray(const Sophus::SE3d& T) {
 cv::aruco::DetectorParameters MakeDetectorParams() {
   cv::aruco::DetectorParameters p;
   p.cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-
-  // Blur robustness: tolerate more decode bit errors, widen the adaptive
-  // threshold window for high-res/soft edges, and loosen the quad corner
-  // approximation so slightly smeared markers still detect.
-  p.errorCorrectionRate = 0.8;
-  p.adaptiveThreshWinSizeMin = 5;
-  p.adaptiveThreshWinSizeMax = 45;
-  p.adaptiveThreshWinSizeStep = 8;
-  p.polygonalApproxAccuracyRate = 0.05;
-  p.aprilTagQuadDecimate = 0.0f;
   return p;
 }
 
@@ -303,7 +293,7 @@ void Tracker::ProcessOnce() {
 }
 
 void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
-  Frame frame(std::move(frame_buffer));
+  Frame frame(std::move(frame_buffer), config_.target_width);
 
   std::vector<int> ids;
   std::vector<std::vector<cv::Point2f>> corners, rejected;

@@ -11,7 +11,7 @@ namespace tagar {
 class Frame {
  public:
   Frame() = delete;
-  Frame(FrameBuffer frame_buffer);
+  Frame(FrameBuffer frame_buffer, int target_width = 0);
   ~Frame();
 
   int64_t GetTimestampNs() const { return t_ns_; }
