@@ -2,11 +2,17 @@
 
 #include <Eigen/Core>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
 #include "tagar/types.hpp"
 
 #include "tagar/frame.hpp"
 
 namespace tagar {
+
+namespace {
+constexpr int kFlowWin = 21;
+constexpr int kFlowMaxLevel = 3;
+}  // namespace
 
 Frame::Frame(FrameBuffer frame_buffer, int target_width) {
   t_ns_ = frame_buffer.t_ns;
@@ -75,6 +81,14 @@ float Frame::DepthAt(float u_color, float v_color) const {
     return -1.0f;
   }
   return z;
+}
+
+const std::vector<cv::Mat>& Frame::GetPyramid() {
+  if (pyramid_.empty() && !gray_.empty()) {
+    cv::buildOpticalFlowPyramid(gray_, pyramid_, cv::Size(kFlowWin, kFlowWin),
+                                kFlowMaxLevel);
+  }
+  return pyramid_;
 }
 
 Frame::~Frame() = default;

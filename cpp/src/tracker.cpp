@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
+#include <opencv2/video/tracking.hpp>
 
 #include "tagar/tracker.hpp"
 #include "tagar/frame.hpp"
@@ -210,6 +212,37 @@ Sophus::SE3d RefinePose(const Sophus::SE3d& T_c_t, const Frame& frame,
   return T;
 }
 
+bool TrackCornensWithOpticalFlow(const std::vector<cv::Mat>& prev_pyramid,
+                                 const std::vector<cv::Mat>& curr_pyramid,
+                                 const std::vector<cv::Point2f>& prev_corners,
+                                 double fb_threshold,
+                                 std::vector<cv::Point2f>& out_corners) {
+  if (prev_pyramid.empty() || curr_pyramid.empty() || prev_corners.empty()) {
+    return false;
+  }
+
+  const cv::Size win(21, 21);
+  std::vector<cv::Point2f> forward, backward;
+  std::vector<uchar> status_fwd, status_bwd;
+  std::vector<float> err_fwd, err_bwd;
+
+  cv::calcOpticalFlowPyrLK(prev_pyramid, curr_pyramid, prev_corners, forward,
+                           status_fwd, err_fwd, win);
+  cv::calcOpticalFlowPyrLK(curr_pyramid, prev_pyramid, forward, backward,
+                           status_bwd, err_bwd, win);
+
+  for (size_t i = 0; i < prev_corners.size(); ++i) {
+    if (!status_fwd[i] || !status_bwd[i]) {
+      return false;
+    }
+    if (cv::norm(prev_corners[i] - backward[i]) > fb_threshold) {
+      return false;
+    }
+  }
+  out_corners = std::move(forward);
+  return true;
+}
+
 Tag MakeTag(int id, const TrackerConfig& config) {
   std::unique_ptr<PoseFilter> filter;
   if (config.filter_enabled) {
@@ -299,6 +332,21 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
   std::vector<std::vector<cv::Point2f>> corners, rejected;
   detector_.detectMarkers(frame.GetGray(), corners, ids, rejected);
 
+  if (config_.flow_enabled && !prev_pyramid_.empty()) {
+    std::unordered_set<int> detected(ids.begin(), ids.end());
+    for (const auto& [id, prev] : prev_corners_) {
+      if (detected.count(id)) {
+        continue;
+      }
+      std::vector<cv::Point2f> tracked;
+      if (TrackCornensWithOpticalFlow(prev_pyramid_, frame.GetPyramid(), prev,
+                                      config_.flow_fb_threshold_px, tracked)) {
+        ids.push_back(id);
+        corners.push_back(std::move(tracked));
+      }
+    }
+  }
+
   const cv::Matx33d K(frame.GetFx(), 0, frame.GetCx(),  //
                       0, frame.GetFy(), frame.GetCy(),  //
                       0, 0, 1);
@@ -386,6 +434,14 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
     T_w_t = T_w_c * best_T_c_t;
 
     tag.AddPose(frame.GetTimestampNs(), T_w_t);
+  }
+
+  if (config_.flow_enabled) {
+    prev_corners_.clear();
+    for (size_t i = 0; i < ids.size(); ++i) {
+      prev_corners_[ids[i]] = corners[i];
+    }
+    prev_pyramid_ = frame.GetPyramid();
   }
 
   const int64_t now_ns = frame.GetTimestampNs();

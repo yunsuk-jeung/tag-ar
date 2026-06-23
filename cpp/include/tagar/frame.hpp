@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <sophus/se3.hpp>
@@ -26,9 +27,12 @@ class Frame {
   const cv::Mat& GetDepth() const { return depth_; }
   float DepthAt(float u_color, float v_color) const;
 
+  const std::vector<cv::Mat>& GetPyramid();
+
  protected:
   int64_t t_ns_;
   cv::Mat gray_;
+  std::vector<cv::Mat> pyramid_;
   cv::Mat depth_;  // CV_32F, meters; empty if unavailable
   float depth_scale_x_ = 1.0f;
   float depth_scale_y_ = 1.0f;

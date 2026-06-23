@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
   fs::path dataset_path =
-      argc > 1 ? fs::path(argv[1]) : project_root / "datasets/06";
+      argc > 1 ? fs::path(argv[1]) : project_root / "datasets/09";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;

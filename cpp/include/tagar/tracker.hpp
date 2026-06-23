@@ -7,7 +7,9 @@
 #include <queue>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
+#include <opencv2/core.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <sophus/se3.hpp>
 
@@ -45,6 +47,9 @@ class Tracker {
   cv::aruco::ArucoDetector detector_;
 
   std::unordered_map<int, Tag> tags_;
+
+  std::vector<cv::Mat> prev_pyramid_;
+  std::unordered_map<int, std::vector<cv::Point2f>> prev_corners_;
 
   TrackerConfig config_;
 

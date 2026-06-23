@@ -2,6 +2,7 @@
 .vscode/
 .clangd
 build/
+build-debug/
 
 .DS_Store
 

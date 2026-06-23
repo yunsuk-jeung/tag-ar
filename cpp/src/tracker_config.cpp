@@ -33,6 +33,9 @@ TrackerConfig TrackerConfig::Load(const std::string& file) {
   config.tag_discard_time_threshold = json.value(
       "tag_discard_time_threshold", config.tag_discard_time_threshold);
   config.target_width = json.value("target_width", config.target_width);
+  config.flow_enabled = json.value("flow_enabled", config.flow_enabled);
+  config.flow_fb_threshold_px =
+      json.value("flow_fb_threshold_px", config.flow_fb_threshold_px);
 
   config.depth_refine_enabled =
       json.value("depth_refine_enabled", config.depth_refine_enabled);
