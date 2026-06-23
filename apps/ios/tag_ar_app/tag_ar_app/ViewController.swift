@@ -55,6 +55,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
 
       // Configure the renderer to draw to the view
       renderer = Renderer(session: session, metalDevice: view.device!, renderDestination: view)
+      renderer.tagCubeSize = defaultTagSize
 
       renderer.drawRectResized(size: view.bounds.size)
     }
@@ -191,6 +192,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     guard let configPath = trackerConfigPath() else { return }
     tagTracker = TagARTracker(configPath: configPath, tagSize: tagSize)
     tagTracker?.start()
+    renderer?.tagCubeSize = tagSize
     renderer?.tagInstances = []  // clear stale cubes until re-detected
     print("[TagARKit] tracker reset, tag size = \(tagSize) m")
   }

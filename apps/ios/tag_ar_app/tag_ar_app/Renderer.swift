@@ -92,6 +92,7 @@ class Renderer {
     var tagInstances: [TagInstance] = []
 
     var faceCamera: Bool = true
+    var tagCubeSize: Float = 0.085
 
     var tagCubePipelineState: MTLRenderPipelineState!
     private lazy var textureLoader = MTKTextureLoader(device: device)
@@ -345,8 +346,8 @@ class Renderer {
         (vertexDescriptor.attributes[Int(kVertexAttributeTexcoord.rawValue)] as! MDLVertexAttribute).name = MDLVertexAttributeTextureCoordinate
         (vertexDescriptor.attributes[Int(kVertexAttributeNormal.rawValue)] as! MDLVertexAttribute).name   = MDLVertexAttributeNormal
         
-        // Use ModelIO to create a box mesh as our object
-        let mesh = MDLMesh(boxWithExtent: vector3(0.075, 0.075, 0.075), segments: vector3(1, 1, 1), inwardNormals: false, geometryType: .triangles, allocator: metalAllocator)
+        // Use a unit cube; tagCubeSize scales it at draw time.
+        let mesh = MDLMesh(boxWithExtent: vector3(1.0, 1.0, 1.0), segments: vector3(1, 1, 1), inwardNormals: false, geometryType: .triangles, allocator: metalAllocator)
         
         // Perform the format/relayout of mesh vertices by setting the new vertex descriptor in our
         //   Model IO mesh
@@ -573,11 +574,12 @@ class Renderer {
                 modelMatrix = tag.transform
             }
 
-            // Offset by half the cube size along its +Z (the textured face's
-            // axis) so the cube sits on the tag plane instead of straddling it.
-            let halfExtent: Float = 0.075 / 2
-            let zAxis = simd_make_float3(modelMatrix.columns.2)
-            modelMatrix.columns.3 += simd_float4(halfExtent * zAxis, 0)
+            let cubeSize = max(tagCubeSize, 0.001)
+            let zAxis = simd_normalize(simd_make_float3(modelMatrix.columns.2))
+            modelMatrix.columns.3 += simd_float4((cubeSize * 0.5) * zAxis, 0)
+            modelMatrix.columns.0 *= cubeSize
+            modelMatrix.columns.1 *= cubeSize
+            modelMatrix.columns.2 *= cubeSize
 
             renderEncoder.setVertexBytes(&modelMatrix,
                                          length: MemoryLayout<matrix_float4x4>.stride,
