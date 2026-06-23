@@ -16,6 +16,9 @@
 		F29F09152FE9614E00983A0D /* tracker_config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F090E2FE9614E00983A0D /* tracker_config.hpp */; };
 		F29F09182FE9614E00983A0D /* logger.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F09112FE9614E00983A0D /* logger.hpp */; };
 		F29F09232FE96F0200983A0D /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F29F09222FE96F0200983A0D /* CoreVideo.framework */; };
+		F29F095E2FEAB5B800983A0D /* one_euro_filter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F095C2FEAB5B800983A0D /* one_euro_filter.hpp */; };
+		F29F095F2FEAB5B800983A0D /* pose_filter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F29F095D2FEAB5B800983A0D /* pose_filter.hpp */; };
+		F29F09612FEAB5C900983A0D /* tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F29F09602FEAB5C900983A0D /* tag.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +32,9 @@
 		F29F090E2FE9614E00983A0D /* tracker_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = tracker_config.hpp; path = ../../../../cpp/include/tagar/tracker_config.hpp; sourceTree = "<group>"; };
 		F29F09112FE9614E00983A0D /* logger.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = logger.hpp; path = ../../../../cpp/include/tagar/logger.hpp; sourceTree = "<group>"; };
 		F29F09222FE96F0200983A0D /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk/System/Library/Frameworks/CoreVideo.framework; sourceTree = DEVELOPER_DIR; };
+		F29F095C2FEAB5B800983A0D /* one_euro_filter.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = one_euro_filter.hpp; path = "/Users/yunsuk/workspace/tag-ar/cpp/include/tagar/one_euro_filter.hpp"; sourceTree = "<absolute>"; };
+		F29F095D2FEAB5B800983A0D /* pose_filter.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = pose_filter.hpp; path = "/Users/yunsuk/workspace/tag-ar/cpp/include/tagar/pose_filter.hpp"; sourceTree = "<absolute>"; };
+		F29F09602FEAB5C900983A0D /* tag.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = tag.cpp; path = "/Users/yunsuk/workspace/tag-ar/cpp/src/tag.cpp"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -89,6 +95,8 @@
 				F29F090B2FE9614E00983A0D /* frame.hpp */,
 				F29F09112FE9614E00983A0D /* logger.hpp */,
 				F29F090E2FE9614E00983A0D /* tracker_config.hpp */,
+				F29F095C2FEAB5B800983A0D /* one_euro_filter.hpp */,
+				F29F095D2FEAB5B800983A0D /* pose_filter.hpp */,
 				F29F090D2FE9614E00983A0D /* tracker.hpp */,
 				F29F090C2FE9614E00983A0D /* types.hpp */,
 			);
@@ -100,6 +108,7 @@
 			children = (
 				F29F09032FE9613200983A0D /* frame.cpp */,
 				F29F09042FE9613200983A0D /* tracker.cpp */,
+				F29F09602FEAB5C900983A0D /* tag.cpp */,
 				F29F09052FE9613200983A0D /* tracker_config.cpp */,
 			);
 			path = src;
@@ -122,6 +131,8 @@
 			files = (
 				F29F09122FE9614E00983A0D /* frame.hpp in Headers */,
 				F29F09132FE9614E00983A0D /* types.hpp in Headers */,
+				F29F095E2FEAB5B800983A0D /* one_euro_filter.hpp in Headers */,
+				F29F095F2FEAB5B800983A0D /* pose_filter.hpp in Headers */,
 				F29F09142FE9614E00983A0D /* tracker.hpp in Headers */,
 				F29F09152FE9614E00983A0D /* tracker_config.hpp in Headers */,
 				F29F09182FE9614E00983A0D /* logger.hpp in Headers */,
@@ -202,6 +213,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F29F09612FEAB5C900983A0D /* tag.cpp in Sources */,
 				F29F09072FE9613200983A0D /* frame.cpp in Sources */,
 				F29F09082FE9613200983A0D /* tracker.cpp in Sources */,
 				F29F09092FE9613200983A0D /* tracker_config.cpp in Sources */,

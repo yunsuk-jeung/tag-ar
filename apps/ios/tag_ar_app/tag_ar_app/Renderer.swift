@@ -573,6 +573,12 @@ class Renderer {
                 modelMatrix = tag.transform
             }
 
+            // Offset by half the cube size along its +Z (the textured face's
+            // axis) so the cube sits on the tag plane instead of straddling it.
+            let halfExtent: Float = 0.075 / 2
+            let zAxis = simd_make_float3(modelMatrix.columns.2)
+            modelMatrix.columns.3 += simd_float4(halfExtent * zAxis, 0)
+
             renderEncoder.setVertexBytes(&modelMatrix,
                                          length: MemoryLayout<matrix_float4x4>.stride,
                                          index: Int(kBufferIndexInstanceUniforms.rawValue))

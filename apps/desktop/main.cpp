@@ -119,11 +119,14 @@ int main(int argc, char** argv) {
         T_w_cube.col(2).head<3>() = z;
         T_w_cube.col(3).head<3>() = t_w_t;
 
+        Eigen::Matrix4f T_w_cube_offset = T_w_t;
+        T_w_cube_offset.col(3).head<3>() += kCubeHalf * T_w_t.col(2).head<3>();
+
         // viewer.Draw(tag_cube, T_w_cube, texture);
-        viewer.Draw(tag_cube, T_w_t, texture);
+        viewer.Draw(tag_cube, T_w_cube_offset, texture);
 
         // inset_draws.push_back({T_w_cube, texture});
-        inset_draws.push_back({T_w_t, texture});
+        inset_draws.push_back({T_w_cube_offset, texture});
       }
 
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
