@@ -30,6 +30,9 @@ TrackerConfig TrackerConfig::Load(const std::string& file) {
     config.tag_size_m = 0.08f;
   }
 
+  config.tag_discard_time_threshold = json.value(
+      "tag_discard_time_threshold", config.tag_discard_time_threshold);
+
   config.filter_enabled = json.value("filter_enabled", config.filter_enabled);
   config.filter_translation =
       json.value("filter_translation", config.filter_translation);

@@ -7,6 +7,7 @@ namespace tagar {
 
 struct TrackerConfig {
   float tag_size_m = 0.08f;
+  int64_t tag_discard_time_threshold = 5e8;
 
   bool filter_enabled = true;
   bool filter_translation = true;

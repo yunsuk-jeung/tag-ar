@@ -185,7 +185,7 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
     result->depth.data.assign(begin, begin + depth.total());
   }
 
-  result->tags.reserve(ids.size());
+  result->tags.reserve(tags_.size());
 
   for (size_t i = 0; i < ids.size(); ++i) {
     std::vector<cv::Mat> rvecs, tvecs;
@@ -225,9 +225,20 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
       }
     }
 
-    const Sophus::SE3d& T_w_t_pub = tag.AddPose(frame.GetTimestampNs(), T_w_t);
+    tag.AddPose(frame.GetTimestampNs(), T_w_t);
+  }
 
-    result->tags.push_back({ids[i], ToPoseArray(T_w_t_pub)});
+  const int64_t now_ns = frame.GetTimestampNs();
+  for (auto it = tags_.begin(); it != tags_.end();) {
+    const Tag& tag = it->second;
+    if (now_ns - tag.GetTimestampNs() > config_.tag_discard_time_threshold) {
+      it = tags_.erase(it);
+      continue;
+    }
+    if (const std::optional<Sophus::SE3d> T_w_t = tag.GetTwt()) {
+      result->tags.push_back({it->first, ToPoseArray(*T_w_t)});
+    }
+    ++it;
   }
 
   {

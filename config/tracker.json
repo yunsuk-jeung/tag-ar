@@ -1,11 +1,11 @@
 {
   "tag_size_m": 0.085,
-
+  "tag_discard_time_threshold": 0.5e9,
   "filter_enabled": true,
-  "filter_translation": false,
+  "filter_translation": true,
   "filter_rotation": true,
   "pos_min_cutoff": 1.0,
-  "pos_beta": 0.5,
+  "pos_beta": 80,
   "rot_min_cutoff": 1.0,
   "rot_beta": 0.5,
   "d_cutoff": 1.0

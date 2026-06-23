@@ -24,10 +24,8 @@ class Tag {
 
   const Sophus::SE3d& AddPose(int64_t t_ns, const Sophus::SE3d& T_w_t);
 
-  int64_t GetTns() const { return t_ns_; }
+  int64_t GetTimestampNs() const { return t_ns_; }
 
-  // Latest published world pose; nullopt until the first AddPose. Validity is
-  // tracked by t_ns_ (-1 before any pose), so no separate flag is needed.
   std::optional<Sophus::SE3d> GetTwt() const {
     if (t_ns_ < 0) {
       return std::nullopt;
