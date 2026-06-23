@@ -91,7 +91,7 @@ class Renderer {
 
     var tagInstances: [TagInstance] = []
 
-    var faceCamera: Bool = true
+    var faceCamera: Bool = false
     var tagCubeSize: Float = 0.085
 
     var tagCubePipelineState: MTLRenderPipelineState!

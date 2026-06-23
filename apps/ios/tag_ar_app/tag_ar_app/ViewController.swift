@@ -115,7 +115,8 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     label.textColor = .white
     label.font = .boldSystemFont(ofSize: 16)
 
-    lookAtSwitch.isOn = true
+    lookAtSwitch.isOn = false
+    renderer?.faceCamera = lookAtSwitch.isOn
     lookAtSwitch.addTarget(self, action: #selector(toggleLookAt), for: .valueChanged)
 
     let stack = UIStackView(arrangedSubviews: [label, lookAtSwitch])
