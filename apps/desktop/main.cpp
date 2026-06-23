@@ -76,11 +76,20 @@ int main(int argc, char** argv) {
 
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
-  tag_tracker->Start();
-  simulator->Start();
+  const bool kStepMode = true;
+
+  if (!kStepMode) {
+    tag_tracker->Start();
+    simulator->Start();
+  }
 
   while (!viewer.ShouldClose()) {
     viewer.PollEvents();
+
+    if (kStepMode && viewer.ConsumeKeyPress(GLFW_KEY_RIGHT)) {
+      simulator->FeedFrame();
+      tag_tracker->ProcessOnce();
+    }
 
     viewer.BeginFrame();
     viewer.Draw(origin_axis, kIdentity);

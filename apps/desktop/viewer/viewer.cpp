@@ -11,13 +11,6 @@ void GlfwErrorCallback(int error, const char* description) {
   std::fprintf(stderr, "glfw error %d: %s\n", error, description);
 }
 
-void KeyCallback(GLFWwindow* window, int key, int /*scancode*/, int action,
-                 int /*mods*/) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-  }
-}
-
 Eigen::Matrix4f ProjectionFromIntrinsics(float fx, float fy, float cx, float cy,
                                          float w, float h, float near,
                                          float far) {
@@ -109,7 +102,16 @@ bool Viewer::Init(int width, int height, const std::string& title,
 
 void Viewer::InstallCallbacks() {
   glfwSetWindowUserPointer(window_, this);
-  glfwSetKeyCallback(window_, KeyCallback);
+  glfwSetKeyCallback(window_, [](GLFWwindow* w, int key, int /*scancode*/,
+                                 int action, int /*mods*/) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+      glfwSetWindowShouldClose(w, GLFW_TRUE);
+    }
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+      auto* self = static_cast<Viewer*>(glfwGetWindowUserPointer(w));
+      self->key_presses_.insert(key);
+    }
+  });
 
   glfwSetWindowSizeCallback(window_, [](GLFWwindow* w, int width, int height) {
     auto* self = static_cast<Viewer*>(glfwGetWindowUserPointer(w));
@@ -147,6 +149,15 @@ bool Viewer::ShouldClose() const {
 
 void Viewer::PollEvents() {
   glfwPollEvents();
+}
+
+bool Viewer::ConsumeKeyPress(int key) {
+  auto it = key_presses_.find(key);
+  if (it == key_presses_.end()) {
+    return false;
+  }
+  key_presses_.erase(it);
+  return true;
 }
 
 void Viewer::BeginFrame() {

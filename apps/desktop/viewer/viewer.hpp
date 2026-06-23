@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -47,6 +48,10 @@ class Viewer {
 
   GLCamera& GetCamera() { return camera_; }
 
+  // Edge-triggered: returns true once per key press (GLFW key code), then
+  // clears it. Call after PollEvents().
+  bool ConsumeKeyPress(int key);
+
  private:
   void InstallCallbacks();
 
@@ -60,6 +65,8 @@ class Viewer {
   RenderTarget inset_rt_;
   Texture inset_gray_;
   MeshRenderer inset_quad_;
+
+  std::unordered_set<int> key_presses_;
 };
 
 }  // namespace viz
