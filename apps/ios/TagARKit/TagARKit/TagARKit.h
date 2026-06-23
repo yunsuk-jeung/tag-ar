@@ -29,6 +29,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithConfigPath:(NSString *)configPath NS_DESIGNATED_INITIALIZER;
 
+// Create a tracker from tracker.json, overriding only tag_size_m.
+- (instancetype)initWithConfigPath:(NSString *)configPath
+                           tagSize:(float)tagSizeMeters NS_DESIGNATED_INITIALIZER;
+
 // Create a tracker with an explicit tag size in meters (for runtime reset).
 - (instancetype)initWithTagSize:(float)tagSizeMeters NS_DESIGNATED_INITIALIZER;
 

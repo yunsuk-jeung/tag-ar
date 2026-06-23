@@ -36,6 +36,7 @@ class Wrapper {
 
   bool Init(float tag_size_m);
   bool InitWithConfigFile(const char* config_path);
+  bool InitWithConfigFile(const char* config_path, float tag_size_m);
 
   void Start();
   void Stop();

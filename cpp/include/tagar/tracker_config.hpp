@@ -16,8 +16,8 @@ struct TrackerConfig {
   bool depth_refine_enabled = true;
   int max_depth_samples = 256;
   float refine_sigma_px = 1.0f;  // corner detection noise [px]
-  float refine_sigma_z = 0.01f;  // depth noise [m]
-  float refine_huber_m = 0.02f;  // depth robust threshold [m]
+  float refine_sigma_z = 0.4f;  // depth noise [m]
+  float refine_huber_m = 0.8f;  // depth robust threshold [m]
   int refine_max_iters = 5;      // Gauss-Newton iteration cap
   // tag pose filter
   bool filter_enabled = true;

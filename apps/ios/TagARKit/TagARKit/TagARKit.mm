@@ -57,6 +57,14 @@
   return self;
 }
 
+- (instancetype)initWithConfigPath:(NSString *)configPath
+                           tagSize:(float)tagSizeMeters {
+  if (self = [super init]) {
+    _wrapper.InitWithConfigFile(configPath.UTF8String, tagSizeMeters);
+  }
+  return self;
+}
+
 - (instancetype)initWithTagSize:(float)tagSizeMeters {
   if (self = [super init]) {
     _wrapper.Init(tagSizeMeters);

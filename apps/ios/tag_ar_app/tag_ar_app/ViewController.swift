@@ -73,12 +73,17 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
       .urls(for: .cachesDirectory, in: .userDomainMask)[0].path
     TagARTracker.setLogDirectory(logDir)
 
-    guard let configPath = Bundle.main.path(forResource: "tracker", ofType: "json") else {
-      print("[TagARKit] ERROR: tracker.json not found in app bundle")
-      return
-    }
+    guard let configPath = trackerConfigPath() else { return }
     tagTracker = TagARTracker(configPath: configPath)
     tagTracker?.start()
+  }
+
+  private func trackerConfigPath() -> String? {
+    guard let configPath = Bundle.main.path(forResource: "tracker", ofType: "json") else {
+      print("[TagARKit] ERROR: tracker.json not found in app bundle")
+      return nil
+    }
+    return configPath
   }
 
   private func setupRecordButton() {
@@ -183,7 +188,8 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     tagTracker?.stop()
     tagTracker = nil
 
-    tagTracker = TagARTracker(tagSize: tagSize)
+    guard let configPath = trackerConfigPath() else { return }
+    tagTracker = TagARTracker(configPath: configPath, tagSize: tagSize)
     tagTracker?.start()
     renderer?.tagInstances = []  // clear stale cubes until re-detected
     print("[TagARKit] tracker reset, tag size = \(tagSize) m")

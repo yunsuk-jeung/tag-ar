@@ -212,7 +212,7 @@ Sophus::SE3d RefinePose(const Sophus::SE3d& T_c_t, const Frame& frame,
   return T;
 }
 
-bool TrackCornensWithOpticalFlow(const std::vector<cv::Mat>& prev_pyramid,
+bool TrackCornersWithOpticalFlow(const std::vector<cv::Mat>& prev_pyramid,
                                  const std::vector<cv::Mat>& curr_pyramid,
                                  const std::vector<cv::Point2f>& prev_corners,
                                  double fb_threshold,
@@ -339,7 +339,7 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
         continue;
       }
       std::vector<cv::Point2f> tracked;
-      if (TrackCornensWithOpticalFlow(prev_pyramid_, frame.GetPyramid(), prev,
+      if (TrackCornersWithOpticalFlow(prev_pyramid_, frame.GetPyramid(), prev,
                                       config_.flow_fb_threshold_px, tracked)) {
         ids.push_back(id);
         corners.push_back(std::move(tracked));

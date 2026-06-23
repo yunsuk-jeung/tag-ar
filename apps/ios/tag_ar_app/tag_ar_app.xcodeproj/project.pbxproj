@@ -20,6 +20,7 @@
 		F29F09542FE9896E00983A0D /* 8.png in Resources */ = {isa = PBXBuildFile; fileRef = F29F094A2FE9896E00983A0D /* 8.png */; };
 		F29F09552FE9896E00983A0D /* 0.png in Resources */ = {isa = PBXBuildFile; fileRef = F29F09422FE9896E00983A0D /* 0.png */; };
 		F29F095B2FE99C3900983A0D /* tracker.json in Resources */ = {isa = PBXBuildFile; fileRef = F29F095A2FE99C3900983A0D /* tracker.json */; };
+		F29F09632FEADCC000983A0D /* tracker.json in Resources */ = {isa = PBXBuildFile; fileRef = F29F09622FEADCC000983A0D /* tracker.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +50,7 @@
 		F29F094A2FE9896E00983A0D /* 8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 8.png; path = "/Users/yunsuk/workspace/tag-ar/assets/8.png"; sourceTree = "<absolute>"; };
 		F29F094B2FE9896E00983A0D /* 9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 9.png; path = "/Users/yunsuk/workspace/tag-ar/assets/9.png"; sourceTree = "<absolute>"; };
 		F29F095A2FE99C3900983A0D /* tracker.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = tracker.json; path = "/Users/yunsuk/workspace/tag-ar/config/tracker.json"; sourceTree = "<absolute>"; };
+		F29F09622FEADCC000983A0D /* tracker.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = tracker.json; path = "/Users/yunsuk/workspace/tag-ar/config/tracker.json"; sourceTree = "<absolute>"; };
 		F2B35D2D2FE659AB004857E6 /* tag_ar_app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tag_ar_app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -107,6 +109,7 @@
 				F29F09492FE9896E00983A0D /* 7.png */,
 				F29F094A2FE9896E00983A0D /* 8.png */,
 				F29F094B2FE9896E00983A0D /* 9.png */,
+				F29F09622FEADCC000983A0D /* tracker.json */,
 			);
 			path = asset;
 			sourceTree = "<group>";
@@ -199,6 +202,7 @@
 				F29F094E2FE9896E00983A0D /* 7.png in Resources */,
 				F29F094F2FE9896E00983A0D /* 2.png in Resources */,
 				F29F09502FE9896E00983A0D /* 4.png in Resources */,
+				F29F09632FEADCC000983A0D /* tracker.json in Resources */,
 				F29F09512FE9896E00983A0D /* 5.png in Resources */,
 				F29F09522FE9896E00983A0D /* 6.png in Resources */,
 				F29F095B2FE99C3900983A0D /* tracker.json in Resources */,
