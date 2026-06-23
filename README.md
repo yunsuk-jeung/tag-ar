@@ -98,8 +98,11 @@ Desktop replay에 사용한 recorded dataset은 repository의 `datasets/` 디렉
 
 ## Demo
 
-- [Desktop demo video](https://youtu.be/jRqBUkxuKtc)
-- [iPhone demo video](https://youtu.be/tFITOZecvIE)
+썸네일을 클릭하면 YouTube에서 영상을 볼 수 있습니다.
+
+| Desktop demo | iPhone demo |
+| --- | --- |
+| [![Desktop demo video](https://img.youtube.com/vi/jRqBUkxuKtc/hqdefault.jpg)](https://youtu.be/jRqBUkxuKtc) | [![iPhone demo video](https://img.youtube.com/vi/tFITOZecvIE/hqdefault.jpg)](https://youtu.be/tFITOZecvIE) |
 
 ## Test
 
