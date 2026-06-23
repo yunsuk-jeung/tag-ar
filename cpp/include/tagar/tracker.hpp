@@ -11,6 +11,7 @@
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <sophus/se3.hpp>
 
+#include "tagar/tag.hpp"
 #include "tagar/tracker_config.hpp"
 #include "tagar/types.hpp"
 
@@ -43,8 +44,7 @@ class Tracker {
 
   cv::aruco::ArucoDetector detector_;
 
-  // Latest world pose per tag id, used as a temporal disambiguation fallback.
-  std::unordered_map<int, Sophus::SE3d> last_pose_;
+  std::unordered_map<int, Tag> tags_;
 
   TrackerConfig config_;
 
