@@ -33,6 +33,17 @@ TrackerConfig TrackerConfig::Load(const std::string& file) {
   config.tag_discard_time_threshold = json.value(
       "tag_discard_time_threshold", config.tag_discard_time_threshold);
 
+  config.depth_refine_enabled =
+      json.value("depth_refine_enabled", config.depth_refine_enabled);
+  config.max_depth_samples =
+      json.value("max_depth_samples", config.max_depth_samples);
+  config.refine_sigma_px =
+      json.value("refine_sigma_px", config.refine_sigma_px);
+  config.refine_sigma_z = json.value("refine_sigma_z", config.refine_sigma_z);
+  config.refine_huber_m = json.value("refine_huber_m", config.refine_huber_m);
+  config.refine_max_iters =
+      json.value("refine_max_iters", config.refine_max_iters);
+
   config.filter_enabled = json.value("filter_enabled", config.filter_enabled);
   config.filter_translation =
       json.value("filter_translation", config.filter_translation);

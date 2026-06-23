@@ -8,8 +8,11 @@
 #include <utility>
 #include <vector>
 
+#include <Eigen/Cholesky>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 
 #include "tagar/tracker.hpp"
@@ -61,6 +64,152 @@ double DepthScore(const Sophus::SE3d& T_c_t,
   return n > 0 ? err / n : std::numeric_limits<double>::infinity();
 }
 
+struct DepthObservation {
+  double u, v, z;
+};
+
+std::vector<DepthObservation> SampleQuadDepth(
+    const Frame& frame, const std::vector<cv::Point2f>& quad, int max_samples) {
+  std::vector<DepthObservation> depth_obs;
+  if (!frame.HasDepth() || quad.size() != 4) {
+    return depth_obs;
+  }
+  depth_obs.reserve(max_samples);
+
+  float min_x = quad[0].x, max_x = quad[0].x;
+  float min_y = quad[0].y, max_y = quad[0].y;
+  for (const cv::Point2f& c : quad) {
+    min_x = std::min(min_x, c.x);
+    max_x = std::max(max_x, c.x);
+    min_y = std::min(min_y, c.y);
+    max_y = std::max(max_y, c.y);
+  }
+
+  const double area =
+      std::max(1.0, static_cast<double>(max_x - min_x) * (max_y - min_y));
+  const int stride =
+      std::max(1, static_cast<int>(std::sqrt(area / std::max(1, max_samples))));
+  for (int v = static_cast<int>(std::floor(min_y));
+       v <= static_cast<int>(std::ceil(max_y)); v += stride) {
+    for (int u = static_cast<int>(std::floor(min_x));
+         u <= static_cast<int>(std::ceil(max_x)); u += stride) {
+      if (cv::pointPolygonTest(quad, cv::Point2f(u, v), false) < 0) {
+        continue;
+      }
+      const float z =
+          frame.DepthAt(static_cast<float>(u), static_cast<float>(v));
+      if (z > 0.0f) {
+        depth_obs.push_back({static_cast<double>(u), static_cast<double>(v),
+                             static_cast<double>(z)});
+      }
+    }
+  }
+  return depth_obs;
+}
+
+Sophus::SE3d RefinePose(const Sophus::SE3d& T_c_t, const Frame& frame,
+                        const std::vector<cv::Point3f>& corners_3d,
+                        const std::vector<cv::Point2f>& corners_obs,
+                        const std::vector<DepthObservation>& depth_obs,
+                        double sigma_px, double sigma_z, double huber,
+                        int max_iters) {
+  const double fx = frame.GetFx(), fy = frame.GetFy();
+  const double cx = frame.GetCx(), cy = frame.GetCy();
+  const double kHuber = huber;  // depth robust threshold [m]
+  const double w_px = 1.0 / (sigma_px * sigma_px);
+  const double w_z = 1.0 / (sigma_z * sigma_z);
+
+  Sophus::SE3d T = T_c_t;
+  double rms_px0 = 0.0, rms_z0 = 0.0;
+  double rms_px = 0.0, rms_z = 0.0;
+  int n_px = 0, n_z = 0, iters = 0;
+  for (int it = 0; it < max_iters; ++it) {
+    const Eigen::Matrix3d R = T.rotationMatrix();
+    const Eigen::Vector3d n = R.col(2);
+    const Eigen::Vector3d t = T.translation();
+
+    Eigen::Matrix<double, 6, 6> H = Eigen::Matrix<double, 6, 6>::Zero();
+    Eigen::Matrix<double, 6, 1> b = Eigen::Matrix<double, 6, 1>::Zero();
+    double sse_px = 0.0, sse_z = 0.0;
+    n_px = 0;
+    n_z = 0;
+
+    // Four-corner reprojection.
+    for (size_t k = 0; k < corners_3d.size(); ++k) {
+      const Eigen::Vector3d P =
+          T *
+          Eigen::Vector3d(corners_3d[k].x, corners_3d[k].y, corners_3d[k].z);
+      if (P.z() <= 0.0) {
+        continue;
+      }
+      const double inv_z = 1.0 / P.z();
+      const Eigen::Vector2d r(fx * P.x() * inv_z + cx - corners_obs[k].x,
+                              fy * P.y() * inv_z + cy - corners_obs[k].y);
+      Eigen::Matrix<double, 2, 3> dproj;
+      dproj << fx * inv_z, 0.0, -fx * P.x() * inv_z * inv_z,  //
+          0.0, fy * inv_z, -fy * P.y() * inv_z * inv_z;
+      Eigen::Matrix<double, 3, 6> dPdxi;
+      dPdxi.leftCols<3>() = Eigen::Matrix3d::Identity();
+      dPdxi.rightCols<3>() = -Sophus::SO3d::hat(P);
+      const Eigen::Matrix<double, 2, 6> J = dproj * dPdxi;
+      H += w_px * J.transpose() * J;
+      b += w_px * J.transpose() * r;
+      sse_px += r.squaredNorm();
+      ++n_px;
+    }
+
+    // Depth residual.
+    for (const DepthObservation& s : depth_obs) {
+      const Eigen::Vector3d d((s.u - cx) / fx, (s.v - cy) / fy, 1.0);
+      const double B = n.dot(d);
+      if (std::abs(B) < 1e-6) {
+        continue;
+      }
+      const double z_pred = n.dot(t) / B;
+      if (z_pred <= 0.0) {
+        continue;
+      }
+      const double r = z_pred - s.z;
+      const double robust = std::abs(r) <= kHuber ? 1.0 : kHuber / std::abs(r);
+      const double w = w_z * robust;
+      Eigen::Matrix<double, 1, 6> J;
+      J.block<1, 3>(0, 0) = (1.0 / B) * n.transpose();
+      J.block<1, 3>(0, 3) = -(z_pred / B) * n.cross(d).transpose();
+      H += w * J.transpose() * J;
+      b += w * J.transpose() * r;
+      sse_z += r * r;
+      ++n_z;
+    }
+
+    // RMS residual in natural units: pixels for the corners, meters for depth.
+    rms_px = n_px > 0 ? std::sqrt(sse_px / n_px) : 0.0;
+    rms_z = n_z > 0 ? std::sqrt(sse_z / n_z) : 0.0;
+    if (it == 0) {
+      rms_px0 = rms_px;
+      rms_z0 = rms_z;
+    }
+
+    H.diagonal().array() += 1e-9;  // numerical regularization
+    const Eigen::Matrix<double, 6, 1> dx = H.ldlt().solve(-b);
+    if (!dx.allFinite()) {
+      break;
+    }
+    iters = it + 1;
+    LogD("[refine] it={} uv_rms={:.3f}px z_rms={:.4f}m dx={:.3e}", it, rms_px,
+         rms_z, dx.norm());
+    T = Sophus::SE3d::exp(dx) * T;
+    if (dx.norm() < 1e-7) {
+      break;
+    }
+  }
+
+  LogI(
+      "[refine] {} corners {} depth | uv {:.3f}->{:.3f}px z {:.4f}->{:.4f}m in "
+      "{} iters",
+      n_px, n_z, rms_px0, rms_px, rms_z0, rms_z, iters);
+  return T;
+}
+
 Tag MakeTag(int id, const TrackerConfig& config) {
   std::unique_ptr<PoseFilter> filter;
   if (config.filter_enabled) {
@@ -98,7 +247,7 @@ void Tracker::SubmitFrame(FrameBuffer frame_buffer) {
 
 void Tracker::Start() {
   if (running_.exchange(true)) {
-    return;  // already running
+    return;
   }
   thread_ = std::thread(&Tracker::Run, this);
 }
@@ -207,6 +356,7 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
 
     bool best_set = false;
     double best_score = 0.0;
+    Sophus::SE3d best_T_c_t;
     for (size_t s = 0; s < rvecs.size(); ++s) {
       const Sophus::SE3d T_c_t = CamFromTag(rvecs[s], tvecs[s]);
       const Sophus::SE3d cand = T_w_c * T_c_t;
@@ -220,10 +370,20 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
       }
       if (!best_set || score < best_score) {
         best_score = score;
-        T_w_t = cand;
+        best_T_c_t = T_c_t;
         best_set = true;
       }
     }
+
+    if (config_.depth_refine_enabled && frame.HasDepth()) {
+      std::vector<DepthObservation> depth_obs =
+          SampleQuadDepth(frame, corners[i], config_.max_depth_samples);
+      best_T_c_t =
+          RefinePose(best_T_c_t, frame, corners_3d, corners[i], depth_obs,
+                     config_.refine_sigma_px, config_.refine_sigma_z,
+                     config_.refine_huber_m, config_.refine_max_iters);
+    }
+    T_w_t = T_w_c * best_T_c_t;
 
     tag.AddPose(frame.GetTimestampNs(), T_w_t);
   }
