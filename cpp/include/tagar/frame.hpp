@@ -23,6 +23,7 @@ class Frame {
   double GetCy() const { return cy_; }
 
   bool HasDepth() const { return !depth_.empty(); }
+  const cv::Mat& GetDepth() const { return depth_; }
   float DepthAt(float u_color, float v_color) const;
 
  protected:

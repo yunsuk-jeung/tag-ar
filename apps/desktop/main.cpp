@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
       fs::path(__FILE__).parent_path().parent_path().parent_path();
 
   fs::path dataset_path =
-      argc > 1 ? fs::path(argv[1]) : project_root / "datasets/05";
+      argc > 1 ? fs::path(argv[1]) : project_root / "datasets/06";
 
   if (!file_reader->Init(dataset_path.string())) {
     return 1;
@@ -70,6 +70,9 @@ int main(int argc, char** argv) {
   tag_cube.Upload(viz::MakeCube(kCubeHalf));
 
   viz::TagTextureCache tag_textures((project_root / "assets").string());
+
+  viz::MeshRenderer depth_cloud;
+  depth_cloud.SetPointSize(3.0f);
 
   const Eigen::Matrix4f kIdentity = Eigen::Matrix4f::Identity();
 
@@ -117,6 +120,21 @@ int main(int argc, char** argv) {
       viewer.DrawReprojectionInset(result->gray.data.data(), result->gray.width,
                                    result->gray.height, result->intrinsics,
                                    T_w_c, tag_cube, inset_draws);
+
+      if (!result->depth.data.empty() && result->gray.width > 0 &&
+          result->gray.height > 0) {
+        // Depth intrinsics = color intrinsics scaled to the depth resolution.
+        const float sx = static_cast<float>(result->depth.width) /
+                         static_cast<float>(result->gray.width);
+        const float sy = static_cast<float>(result->depth.height) /
+                         static_cast<float>(result->gray.height);
+        depth_cloud.Upload(viz::MakePointCloud(
+            result->depth.data.data(), result->depth.width,
+            result->depth.height, result->intrinsics[0] * sx,
+            result->intrinsics[1] * sy, result->intrinsics[2] * sx,
+            result->intrinsics[3] * sy));
+        viewer.Draw(depth_cloud, T_w_c);
+      }
     }
 
     viewer.EndFrame();

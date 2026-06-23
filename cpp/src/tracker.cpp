@@ -164,6 +164,15 @@ void Tracker::ProcessFrame(FrameBuffer frame_buffer) {
   result->gray.width = gray.cols;
   result->gray.height = gray.rows;
   result->gray.data.assign(gray.data, gray.data + gray.total());
+
+  if (frame.HasDepth()) {
+    const cv::Mat& depth = frame.GetDepth();
+    result->depth.width = depth.cols;
+    result->depth.height = depth.rows;
+    const auto* begin = depth.ptr<float>(0);
+    result->depth.data.assign(begin, begin + depth.total());
+  }
+
   result->tags.reserve(ids.size());
 
   for (size_t i = 0; i < ids.size(); ++i) {

@@ -1,7 +1,22 @@
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include "viewer/mesh_renderer.hpp"
 #include "viewer/shader.hpp"
 
 namespace viz {
+namespace {
+
+Eigen::Vector3f JetColor(float t) {
+  t = std::clamp(t, 0.0f, 1.0f);
+  const float r = std::clamp(1.5f - std::fabs(4.0f * t - 3.0f), 0.0f, 1.0f);
+  const float g = std::clamp(1.5f - std::fabs(4.0f * t - 2.0f), 0.0f, 1.0f);
+  const float b = std::clamp(1.5f - std::fabs(4.0f * t - 1.0f), 0.0f, 1.0f);
+  return {r, g, b};
+}
+
+}  // namespace
 
 MeshData MakeAxis(float length) {
   MeshData m;
@@ -68,20 +83,26 @@ MeshData MakeCube(float half_extent) {
   MeshData m;
   m.mode = GL_TRIANGLES;
   m.positions = {
-      {-h, -h, h},  {h, -h, h},  {h, h, h},  {-h, h, h},   // +Z front
-      {h, -h, -h},  {-h, -h, -h}, {-h, h, -h}, {h, h, -h}, // -Z back
-      {h, -h, h},   {h, -h, -h}, {h, h, -h},  {h, h, h},   // +X right
-      {-h, -h, -h}, {-h, -h, h}, {-h, h, h},  {-h, h, -h}, // -X left
-      {-h, h, h},   {h, h, h},   {h, h, -h},  {-h, h, -h}, // +Y top
-      {-h, -h, -h}, {h, -h, -h}, {h, -h, h},  {-h, -h, h}  // -Y bottom
+      {-h, -h, h},  {h, -h, h},   {h, h, h},   {-h, h, h},   // +Z front
+      {h, -h, -h},  {-h, -h, -h}, {-h, h, -h}, {h, h, -h},   // -Z back
+      {h, -h, h},   {h, -h, -h},  {h, h, -h},  {h, h, h},    // +X right
+      {-h, -h, -h}, {-h, -h, h},  {-h, h, h},  {-h, h, -h},  // -X left
+      {-h, h, h},   {h, h, h},    {h, h, -h},  {-h, h, -h},  // +Y top
+      {-h, -h, -h}, {h, -h, -h},  {h, -h, h},  {-h, -h, h}   // -Y bottom
   };
   m.colors = {
-      {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},   // +Z front (textured)
-      {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},   // -Z back
-      {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},   // +X right
-      {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},   // -X left
-      {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},   // +Y top
-      {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}   // -Y bottom
+      {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},
+      {0.1f, 0.9f, 0.9f},  {0.1f, 0.9f, 0.9f},  // +Z front (textured)
+      {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},
+      {0.9f, 0.1f, 0.9f},  {0.9f, 0.1f, 0.9f},  // -Z back
+      {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},
+      {0.9f, 0.2f, 0.2f},  {0.9f, 0.2f, 0.2f},  // +X right
+      {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},
+      {0.2f, 0.8f, 0.2f},  {0.2f, 0.8f, 0.2f},  // -X left
+      {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},
+      {0.2f, 0.4f, 1.0f},  {0.2f, 0.4f, 1.0f},  // +Y top
+      {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f},
+      {1.0f, 0.85f, 0.1f}, {1.0f, 0.85f, 0.1f}  // -Y bottom
   };
   // Only the +Z face maps to the full texture; the other faces sample the
   // texture's white corner (0,0) so color*white leaves their flat color.
@@ -101,6 +122,44 @@ MeshData MakeCube(float half_extent) {
       16, 17, 18, 16, 18, 19,  // +Y top
       20, 21, 22, 20, 22, 23   // -Y bottom
   };
+  return m;
+}
+
+MeshData MakePointCloud(const float* depth, int width, int height, float fx,
+                        float fy, float cx, float cy) {
+  MeshData m;
+  m.mode = GL_POINTS;
+  if (depth == nullptr || width <= 0 || height <= 0 || fx <= 0.0f ||
+      fy <= 0.0f) {
+    return m;
+  }
+
+  const int count = width * height;
+  float z_min = std::numeric_limits<float>::infinity();
+  float z_max = 0.0f;
+  for (int i = 0; i < count; ++i) {
+    const float z = depth[i];
+    if (std::isfinite(z) && z > 0.0f) {
+      z_min = std::min(z_min, z);
+      z_max = std::max(z_max, z);
+    }
+  }
+  const float z_range = (z_max > z_min) ? (z_max - z_min) : 1.0f;
+
+  m.positions.reserve(count);
+  m.colors.reserve(count);
+  for (int v = 0; v < height; ++v) {
+    for (int u = 0; u < width; ++u) {
+      const float z = depth[v * width + u];
+      if (!std::isfinite(z) || z <= 0.0f) {
+        continue;
+      }
+      const float x = (static_cast<float>(u) - cx) / fx * z;
+      const float y = (static_cast<float>(v) - cy) / fy * z;
+      m.positions.emplace_back(x, y, z);
+      m.colors.push_back(JetColor((z - z_min) / z_range));
+    }
+  }
   return m;
 }
 
@@ -205,6 +264,8 @@ void MeshRenderer::Draw(const Shader& shader, const Eigen::Matrix4f& mvp,
 
   if (mode_ == GL_LINES) {
     glLineWidth(line_width_);
+  } else if (mode_ == GL_POINTS) {
+    glPointSize(point_size_);
   }
 
   glBindVertexArray(vao_);

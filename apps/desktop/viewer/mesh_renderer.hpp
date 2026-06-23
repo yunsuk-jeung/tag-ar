@@ -28,6 +28,9 @@ MeshData MakeQuad(const Eigen::Vector3f& color);
 
 MeshData MakeCube(float half_extent);
 
+MeshData MakePointCloud(const float* depth, int width, int height, float fx,
+                        float fy, float cx, float cy);
+
 class MeshRenderer {
  public:
   MeshRenderer() = default;
@@ -42,6 +45,7 @@ class MeshRenderer {
             GLuint texture = 0) const;
 
   void SetLineWidth(float width) { line_width_ = width; }
+  void SetPointSize(float size) { point_size_ = size; }
 
  private:
   static GLuint WhiteTexture();
@@ -58,6 +62,7 @@ class MeshRenderer {
   GLsizei index_count_ = 0;
 
   float line_width_ = 2.0f;
+  float point_size_ = 2.0f;
 };
 
 }  // namespace viz

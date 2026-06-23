@@ -42,6 +42,12 @@ struct GrayImage {
   std::vector<uint8_t> data;  // row-major, 1 byte per pixel
 };
 
+struct DepthImage {
+  int width = 0;
+  int height = 0;
+  std::vector<float> data;  // row-major, meters; empty if unavailable
+};
+
 // A tracked tag, decoupled from Sophus.
 struct TagObservation {
   int id = 0;
@@ -54,6 +60,7 @@ struct TrackResult {
   std::array<float, 16> T_w_c{};      // 4x4 camera-to-world, column-major
   std::array<float, 4> intrinsics{};  // [fx, fy, cx, cy] for the gray image
   GrayImage gray;
+  DepthImage depth;  // optional; empty if the frame carried no depth
   std::vector<TagObservation> tags;
 };
 
