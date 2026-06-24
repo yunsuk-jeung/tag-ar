@@ -98,11 +98,27 @@ Desktop replay에 사용한 recorded dataset은 repository의 `datasets/` 디렉
 
 ## Demo
 
-썸네일을 클릭하면 YouTube에서 영상을 볼 수 있습니다.
+아래 영상은 GitHub에서 바로 재생됩니다.
 
-| Desktop demo | iPhone demo |
-| --- | --- |
-| [![Desktop demo video](https://img.youtube.com/vi/jRqBUkxuKtc/hqdefault.jpg)](https://youtu.be/jRqBUkxuKtc) | [![iPhone demo video](https://img.youtube.com/vi/tFITOZecvIE/hqdefault.jpg)](https://youtu.be/tFITOZecvIE) |
+**Demo 1**
+
+https://github.com/user-attachments/assets/c363d025-0faa-4efc-8105-886a06875fd1
+
+**Demo 2**
+
+https://github.com/user-attachments/assets/ae704b7c-70f7-41c0-a89b-57195346a217
+
+**Demo 3**
+
+https://github.com/user-attachments/assets/f20f32b1-8a18-47df-8228-9f85e96e637c
+
+**Demo 4**
+
+https://github.com/user-attachments/assets/295b67bb-1f0e-410b-a097-defc2fbf0918
+
+**Demo 5**
+
+https://github.com/user-attachments/assets/e046cd3a-7f12-4cd5-887d-723452d6cb96
 
 ## Test
 
